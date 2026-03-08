@@ -3,8 +3,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dress_app/theme.dart';
+import 'package:dress_app/models/product.dart';
 import 'package:dress_app/screens/product_details_screen.dart';
 import 'package:dress_app/services/mock_data_service.dart';
+import 'package:dress_app/widgets/favorite_button.dart';
 import 'package:dress_app/screens/filters_bottom_sheet.dart';
 
 class SearchResultsScreen extends StatefulWidget {
@@ -17,12 +19,60 @@ class SearchResultsScreen extends StatefulWidget {
 
 class _SearchResultsScreenState extends State<SearchResultsScreen> {
   late TextEditingController _searchController;
-  final _products = MockDataService.mockProducts;
+  List<Product> _products = [];
+  String _currentSort = 'Popular';
+  Map<String, dynamic>? _appliedFilters;
 
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController(text: widget.query);
+    _filterProducts(widget.query);
+  }
+
+  void _filterProducts(String query) {
+    setState(() {
+      var filtered = List.from(MockDataService.mockProducts);
+
+      if (query.isNotEmpty) {
+        final lowercaseQuery = query.toLowerCase();
+        filtered = filtered.where((p) {
+          return p.name.toLowerCase().contains(lowercaseQuery) || 
+                 p.category.toLowerCase().contains(lowercaseQuery);
+        }).toList();
+      }
+
+      if (_appliedFilters != null) {
+        final category = _appliedFilters!['category'] as String;
+        final priceRange = _appliedFilters!['priceRange'] as RangeValues;
+        final sizes = _appliedFilters!['sizes'] as List<String>;
+        
+        if (category != 'All') {
+          filtered = filtered.where((p) => p.category == category).toList();
+        }
+        
+        filtered = filtered.where((p) => p.price >= priceRange.start && p.price <= priceRange.end).toList();
+        
+        if (sizes.isNotEmpty) {
+          filtered = filtered.where((p) => p.sizes.any((s) => sizes.contains(s))).toList();
+        }
+      }
+
+      _products = filtered.cast<Product>();
+      _applySort();
+    });
+  }
+
+  void _applySort() {
+    setState(() {
+      if (_currentSort == 'Popular') {
+        _products.sort((a, b) => b.rating.compareTo(a.rating));
+      } else if (_currentSort == 'Price: Low to High') {
+        _products.sort((a, b) => a.price.compareTo(b.price));
+      } else if (_currentSort == 'Price: High to Low') {
+        _products.sort((a, b) => b.price.compareTo(a.price));
+      }
+    });
   }
 
   @override
@@ -31,13 +81,18 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     super.dispose();
   }
 
-  void _showFilters() {
-    showModalBottomSheet(
+  void _showFilters() async {
+    final result = await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => const FiltersBottomSheet(),
     );
+
+    if (result != null && result is Map<String, dynamic>) {
+      _appliedFilters = result;
+      _filterProducts(_searchController.text);
+    }
   }
 
   @override
@@ -76,7 +131,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                           icon: const Icon(FluentIcons.search_24_regular, color: AppTheme.textLight),
                         ),
                         onSubmitted: (value) {
-                          // In a real app, perform search
+                          _filterProducts(value);
                         },
                       ),
                     ),
@@ -107,15 +162,29 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                     '${_products.length} Results Found',
                     style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textDark),
                   ),
-                  Row(
-                    children: [
-                      Text(
-                        'Popular',
-                        style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textDark),
-                      ),
-                      const SizedBox(width: 4),
-                      const Icon(FluentIcons.chevron_down_24_regular, size: 16, color: AppTheme.textDark),
+                  PopupMenuButton<String>(
+                    initialValue: _currentSort,
+                    onSelected: (String value) {
+                      setState(() {
+                        _currentSort = value;
+                        _applySort();
+                      });
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(value: 'Popular', child: Text('Popular')),
+                      const PopupMenuItem(value: 'Price: Low to High', child: Text('Price: Low to High')),
+                      const PopupMenuItem(value: 'Price: High to Low', child: Text('Price: High to Low')),
                     ],
+                    child: Row(
+                      children: [
+                        Text(
+                          _currentSort,
+                          style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textDark),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(FluentIcons.chevron_down_24_regular, size: 16, color: AppTheme.textDark),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -176,17 +245,9 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                 Positioned(
                   top: 12,
                   right: 12,
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      FluentIcons.heart_24_regular,
-                      color: AppTheme.textLight,
-                      size: 16,
-                    ),
+                  child: FavoriteButton(
+                    productId: product.id,
+                    backgroundColor: Colors.white.withOpacity(0.9),
                   ),
                 ),
               ],

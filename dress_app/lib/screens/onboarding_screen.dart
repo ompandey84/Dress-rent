@@ -98,6 +98,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             },
           ),
           SafeArea(
+            child: Align(
+              alignment: Alignment.topRight,
+              child: TextButton(
+                onPressed: () => _navigateToLogin(context),
+                child: Text(
+                  'Skip',
+                  style: GoogleFonts.inter(
+                    color: Colors.white.withOpacity(0.9),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 24.0,

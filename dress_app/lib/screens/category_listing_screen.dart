@@ -6,6 +6,7 @@ import 'package:dress_app/theme.dart';
 import 'package:dress_app/screens/product_details_screen.dart';
 import 'package:dress_app/services/mock_data_service.dart';
 import 'package:dress_app/screens/filters_bottom_sheet.dart';
+import 'package:dress_app/widgets/favorite_button.dart';
 
 class CategoryListingScreen extends StatefulWidget {
   final String categoryName;
@@ -128,17 +129,9 @@ class _CategoryListingScreenState extends State<CategoryListingScreen> {
                 Positioned(
                   top: 12,
                   right: 12,
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      FluentIcons.heart_24_regular,
-                      color: AppTheme.textLight,
-                      size: 16,
-                    ),
+                  child: FavoriteButton(
+                    productId: product.id,
+                    backgroundColor: Colors.white.withOpacity(0.9),
                   ),
                 ),
               ],

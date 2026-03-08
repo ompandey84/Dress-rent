@@ -8,6 +8,9 @@ import 'package:dress_app/screens/my_orders_screen.dart';
 import 'package:dress_app/screens/edit_profile_screen.dart';
 import 'package:dress_app/screens/wishlist_screen.dart';
 import 'package:dress_app/screens/help_support_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:dress_app/services/app_state.dart';
+import 'package:dress_app/models/order.dart';
 import 'package:dress_app/screens/vendor/vendor_signup_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -20,13 +23,15 @@ class ProfileScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppTheme.backgroundLight,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(FluentIcons.chevron_left_24_regular, color: AppTheme.textDark),
-          onPressed: () => Navigator.pop(context),
-        ),
+        // Removed leading back button since this is a bottom nav screen
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: Consumer<AppState>(
+          builder: (context, appState, child) {
+            final user = appState.currentUser;
+            final inProgressOrders = appState.orders.where((o) => o.status != OrderStatus.delivered && o.status != OrderStatus.refunded).length;
+            
+            return SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(24, 0, 24, 100),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -38,17 +43,15 @@ class ProfileScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(color: AppTheme.primaryLime, width: 3),
-                  image: const DecorationImage(
-                    image: CachedNetworkImageProvider(
-                      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=200&auto=format&fit=crop',
-                    ), // Standard male face
+                  image: DecorationImage(
+                    image: CachedNetworkImageProvider(user.avatarUrl),
                     fit: BoxFit.cover,
                   ),
                 ),
               ),
               const SizedBox(height: 16),
               Text(
-                'MR JANSON CLARK',
+                user.name.toUpperCase(),
                 style: GoogleFonts.inter(
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
@@ -97,7 +100,7 @@ class ProfileScreen extends StatelessWidget {
                   Expanded(
                     child: _buildStatCard(
                       'Total Order',
-                      '100+',
+                      appState.orders.length.toString(),
                       FluentIcons.cart_24_regular,
                       Colors.green,
                     ),
@@ -106,7 +109,7 @@ class ProfileScreen extends StatelessWidget {
                   Expanded(
                     child: _buildStatCard(
                       'On progress',
-                      '8',
+                      inProgressOrders.toString(),
                       FluentIcons.clipboard_24_regular,
                       Colors.orange,
                     ),
@@ -217,7 +220,8 @@ class ProfileScreen extends StatelessWidget {
               ),
             ],
           ),
-        ),
+        );
+      }),
       ),
     );
   }

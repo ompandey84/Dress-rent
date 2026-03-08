@@ -1,9 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:dress_app/theme.dart';
 import 'package:dress_app/widgets/custom_text_field.dart';
 import 'package:dress_app/screens/order_success_screen.dart';
+
+class CardNumberFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    var text = newValue.text;
+    text = text.replaceAll(RegExp(r'\s'), '');
+    var newString = '';
+    for (int i = 0; i < text.length; i++) {
+      newString += text[i];
+      if ((i + 1) % 4 == 0 && i != text.length - 1) {
+        newString += ' ';
+      }
+    }
+    return TextEditingValue(
+      text: newString,
+      selection: TextSelection.collapsed(offset: newString.length),
+    );
+  }
+}
 
 class AddCardScreen extends StatefulWidget {
   const AddCardScreen({Key? key}) : super(key: key);
@@ -157,10 +180,15 @@ class _AddCardScreenState extends State<AddCardScreen> {
                     hintText: '0000 0000 0000 0000',
                     controller: _cardController,
                     keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      CardNumberFormatter(),
+                      LengthLimitingTextInputFormatter(19),
+                    ],
                     onChanged: (v) => setState(() {}),
                     validator: (val) {
                       if (val == null || val.trim().isEmpty) return 'Please enter card number';
-                      if (val.length < 16) return 'Invalid card number';
+                      if (val.length < 19) return 'Invalid card number';
                       return null;
                     },
                   ),

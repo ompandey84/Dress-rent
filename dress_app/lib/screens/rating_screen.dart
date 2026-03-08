@@ -12,6 +12,23 @@ class RatingScreen extends StatefulWidget {
 
 class _RatingScreenState extends State<RatingScreen> {
   int _rating = 5;
+  int _charCount = 0;
+
+  String _getRatingText() {
+    switch (_rating) {
+      case 1:
+        return 'Poor';
+      case 2:
+        return 'Fair';
+      case 3:
+        return 'Good';
+      case 4:
+        return 'Very Good';
+      case 5:
+      default:
+        return 'Excellent work!';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +87,7 @@ class _RatingScreenState extends State<RatingScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Excellent work!',
+                _getRatingText(),
                 style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textDark),
               ),
               const SizedBox(height: 48),
@@ -94,10 +111,17 @@ class _RatingScreenState extends State<RatingScreen> {
                   ),
                   child: TextField(
                     maxLines: null,
+                    maxLength: 200,
+                    onChanged: (text) {
+                      setState(() {
+                        _charCount = text.length;
+                      });
+                    },
                     decoration: InputDecoration(
                       hintText: 'Tell us more about your rental experience...',
                       hintStyle: GoogleFonts.inter(fontSize: 14, color: AppTheme.textLight, height: 1.5),
                       border: InputBorder.none,
+                      counterText: '',
                     ),
                   ),
                 ),
@@ -105,7 +129,7 @@ class _RatingScreenState extends State<RatingScreen> {
               const SizedBox(height: 8),
               Align(
                 alignment: Alignment.centerRight,
-                child: Text('0/200', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textLight)),
+                child: Text('$_charCount/200', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textLight)),
               ),
               const SizedBox(height: 24),
               
@@ -115,6 +139,7 @@ class _RatingScreenState extends State<RatingScreen> {
                 height: 56,
                 child: ElevatedButton(
                   onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Thanks for your feedback!'), backgroundColor: Colors.green));
                     Navigator.of(context).pop();
                   },
                   style: ElevatedButton.styleFrom(

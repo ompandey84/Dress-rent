@@ -6,6 +6,7 @@ class UserProfile {
   String email;
   String phone;
   String avatarUrl;
+  String location;
   bool isVendor;
   List<Address> addresses;
 
@@ -15,6 +16,7 @@ class UserProfile {
     required this.email,
     required this.phone,
     required this.avatarUrl,
+    this.location = '',
     this.isVendor = false,
     this.addresses = const [],
   });

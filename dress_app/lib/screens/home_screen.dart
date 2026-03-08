@@ -7,9 +7,12 @@ import 'package:provider/provider.dart';
 import 'package:dress_app/theme.dart';
 import 'package:dress_app/screens/product_details_screen.dart';
 import 'package:dress_app/services/app_state.dart';
+import 'package:dress_app/widgets/favorite_button.dart';
 import 'package:dress_app/services/mock_data_service.dart';
 import 'package:dress_app/screens/notifications_screen.dart';
 import 'package:dress_app/screens/search_results_screen.dart';
+import 'package:dress_app/screens/category_listing_screen.dart';
+import 'package:dress_app/screens/filters_bottom_sheet.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -49,10 +52,10 @@ class HomeScreen extends StatelessWidget {
                     _buildInfluencersSection(),
                     _buildSearchBar(context),
                     const SizedBox(height: 24),
-                    _buildSectionTitle('Discover Near You'),
-                    const SizedBox(height: 16),
-                    _buildCategoryChips(),
+                    _buildCategoryChips(context),
                     const SizedBox(height: 24),
+                    _buildSectionTitle(context, 'New Arrived'),
+                    const SizedBox(height: 16),
                     _buildProductGrid(context, products),
                   ],
                 ),
@@ -326,13 +329,23 @@ class HomeScreen extends StatelessWidget {
               color: AppTheme.textDark,
             ),
           ),
-          suffixIcon: Padding(
-            padding: const EdgeInsets.only(right: 14.0, left: 14.0),
-            child: Image.asset(
-              'assets/images/filter.png',
-              width: 20,
-              height: 20,
-              color: AppTheme.textDark,
+          suffixIcon: GestureDetector(
+            onTap: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => const FiltersBottomSheet(),
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(right: 14.0, left: 14.0),
+              child: Image.asset(
+                'assets/images/filter.png',
+                width: 20,
+                height: 20,
+                color: AppTheme.textDark,
+              ),
             ),
           ),
           contentPadding: const EdgeInsets.symmetric(vertical: 16),
@@ -341,7 +354,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(BuildContext context, String title) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -354,31 +367,36 @@ class HomeScreen extends StatelessWidget {
             color: AppTheme.textDark,
           ),
         ),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              'See All',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+        GestureDetector(
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const CategoryListingScreen(categoryName: 'All')));
+          },
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'See All',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textDark,
+                ),
+              ),
+              const SizedBox(width: 4),
+              const Icon(
+                FluentIcons.chevron_down_24_regular,
+                size: 16,
                 color: AppTheme.textDark,
               ),
-            ),
-            const SizedBox(width: 4),
-            const Icon(
-              FluentIcons.chevron_down_24_regular,
-              size: 16,
-              color: AppTheme.textDark,
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildCategoryChips() {
+  Widget _buildCategoryChips(BuildContext context) {
     final List<String> categories = [
       'All',
       'New Arrived',
@@ -391,24 +409,29 @@ class HomeScreen extends StatelessWidget {
       child: Row(
         children: categories.map((cat) {
           final isSelected = cat == 'All';
-          return Container(
-            margin: const EdgeInsets.only(right: 8),
-            padding: const EdgeInsets.symmetric(
-              horizontal: 14,
-              vertical: 6,
-            ), 
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? AppTheme.textDark
-                  : Colors.white, 
-              borderRadius: BorderRadius.circular(100),
-            ),
-            child: Text(
-              cat,
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? Colors.white : AppTheme.textLight,
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => CategoryListingScreen(categoryName: cat)));
+            },
+            child: Container(
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 6,
+              ), 
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? AppTheme.textDark
+                    : Colors.white, 
+                borderRadius: BorderRadius.circular(100),
+              ),
+              child: Text(
+                cat,
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected ? Colors.white : AppTheme.textLight,
+                ),
               ),
             ),
           );
@@ -501,18 +524,7 @@ class HomeScreen extends StatelessWidget {
               Positioned(
                 top: 12,
                 right: 12,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    FluentIcons.heart_24_regular,
-                    color: AppTheme.textLight,
-                    size: 16,
-                  ),
-                ),
+                child: FavoriteButton(productId: product.id),
               ),
               // Price Pill overlapping the clipped image area
               Positioned(

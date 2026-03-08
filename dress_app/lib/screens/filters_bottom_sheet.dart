@@ -220,7 +220,12 @@ class _FiltersBottomSheetState extends State<FiltersBottomSheet> {
                 flex: 2,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.pop(context, true); // apply
+                    Navigator.pop(context, {
+                      'category': _selectedCategory,
+                      'priceRange': _priceRange,
+                      'sizes': _selectedSizes,
+                      'brands': _selectedBrands,
+                    });
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryLime,

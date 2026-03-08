@@ -4,9 +4,12 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dress_app/theme.dart';
 import 'package:dress_app/models/product.dart';
+import 'package:provider/provider.dart';
+import 'package:dress_app/services/app_state.dart';
 import 'package:dress_app/screens/select_dates_screen.dart';
 import 'package:dress_app/screens/store_detail_screen.dart';
 import 'package:dress_app/screens/size_guide_bottom_sheet.dart';
+import 'package:dress_app/screens/message_list_screen.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
   final Product product;
@@ -86,21 +89,42 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                       color: Colors.white,
                                     ),
                                   ),
-                                  GestureDetector(
-                                    onTap: () {
-                                      // TODO: Go to cart / checkout
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.all(10),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withValues(alpha: 0.3),
-                                        shape: BoxShape.circle,
+                                  Row(
+                                    children: [
+                                      GestureDetector(
+                                        onTap: () {
+                                          context.read<AppState>().toggleFavorite(widget.product.id);
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.all(10),
+                                          margin: const EdgeInsets.only(right: 8),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withValues(alpha: 0.3),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            context.watch<AppState>().wishlistProductIds.contains(widget.product.id) ? FluentIcons.heart_24_filled : FluentIcons.heart_24_regular,
+                                            color: context.watch<AppState>().wishlistProductIds.contains(widget.product.id) ? Colors.red : Colors.white,
+                                          ),
+                                        ),
                                       ),
-                                      child: const Icon(
-                                        FluentIcons.cart_24_regular,
-                                        color: Colors.white,
+                                      GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(context, MaterialPageRoute(builder: (_) => SelectDatesScreen(product: widget.product)));
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.all(10),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withValues(alpha: 0.3),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(
+                                            FluentIcons.cart_24_regular,
+                                            color: Colors.white,
+                                          ),
+                                        ),
                                       ),
-                                    ),
+                                    ],
                                   ),
                                 ],
                               ),
@@ -109,17 +133,22 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                             Positioned(
                               bottom: 24, // adjust to hover right above the curve
                               right: 24,
-                              child: Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha: 0.4),
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 1),
-                                ),
-                                child: const Icon(
-                                  FluentIcons.cube_24_regular,
-                                  color: Colors.white,
-                                  size: 24,
+                              child: GestureDetector(
+                                onTap: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('AR View coming soon!')));
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.4),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 1),
+                                  ),
+                                  child: const Icon(
+                                    FluentIcons.cube_24_regular,
+                                    color: Colors.white,
+                                    size: 24,
+                                  ),
                                 ),
                               ),
                             ),
@@ -140,14 +169,14 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Dubai Marina',
+                                      widget.product.location,
                                       style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textDark),
                                     ),
                                     const SizedBox(height: 4),
                                     FittedBox(
                                       fit: BoxFit.scaleDown,
                                       child: Text(
-                                        'PREMIUM HOODIE',
+                                        widget.product.name.toUpperCase(),
                                         style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.w900, color: AppTheme.textDark, height: 1.1),
                                         maxLines: 1,
                                       ),
@@ -157,7 +186,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                'AED 295.00',
+                                'AED ${widget.product.price.toStringAsFixed(2)}',
                                 style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, color: const Color(0xFF0C6B86)), // Exact teal color targeting from design
                               ),
                             ],
@@ -171,23 +200,28 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                   const Icon(Icons.star, size: 20, color: Color(0xFFFBBC05)), // Gold star
                                   const SizedBox(width: 4),
                                   Text(
-                                    '4.9',
+                                    widget.product.rating.toString(),
                                     style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w800, color: AppTheme.textDark),
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    '|  50 reviews',
+                                    '|  ${widget.product.reviewsCount} reviews',
                                     style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textDark),
                                   ),
                                 ],
                               ),
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFEAF1F5), // Light blue-grey background
-                                  shape: BoxShape.circle,
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.push(context, MaterialPageRoute(builder: (_) => const MessageListScreen()));
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFEAF1F5), // Light blue-grey background
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(FluentIcons.chat_24_regular, size: 20, color: AppTheme.textDark),
                                 ),
-                                child: const Icon(FluentIcons.chat_24_regular, size: 20, color: AppTheme.textDark),
                               ),
                             ],
                           ),
@@ -244,7 +278,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                 ),
                                 ElevatedButton(
                                   onPressed: () {
-                                    Navigator.push(context, MaterialPageRoute(builder: (_) => const StoreDetailScreen(storeName: 'ZARA Brand Store')));
+                                    Navigator.push(context, MaterialPageRoute(builder: (_) => StoreDetailScreen(storeName: widget.product.storeName)));
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppTheme.primaryLime,
@@ -281,8 +315,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                 children: [
                                   TextSpan(
                                     text: isDescriptionExpanded
-                                        ? 'Upgrade your wardrobe with our Premium Hoodie, crafted for comfort, style, and durability. Made from a high-quality cotton blend to provide ultimate warmth, featuring a spacious front pocket, and an adjustable drawstring hood, it is perfect for any occasion. Look stylish and feel comfortable. '
-                                        : 'Upgrade your wardrobe with our Premium Hoodie, crafted for comfort, style, and durability... ',
+                                        ? widget.product.description + ' '
+                                        : (widget.product.description.length > 100 ? widget.product.description.substring(0, 100) + '... ' : widget.product.description + ' '),
                                   ),
                                   TextSpan(
                                     text: isDescriptionExpanded ? 'Read Less' : 'Read More',

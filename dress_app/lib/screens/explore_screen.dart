@@ -8,6 +8,8 @@ import 'package:dress_app/services/app_state.dart';
 import 'package:dress_app/screens/search_results_screen.dart';
 import 'package:dress_app/screens/filters_bottom_sheet.dart';
 import 'package:dress_app/screens/category_listing_screen.dart';
+import 'package:dress_app/screens/notifications_screen.dart';
+import 'package:dress_app/screens/store_detail_screen.dart';
 
 class ExploreScreen extends StatelessWidget {
   const ExploreScreen({Key? key}) : super(key: key);
@@ -23,7 +25,7 @@ class ExploreScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(appState.currentUser.name),
+              _buildHeader(context, appState.currentUser.name),
               const SizedBox(height: 24),
               _buildInfluencersSection(),
               const SizedBox(height: 24),
@@ -33,7 +35,7 @@ class ExploreScreen extends StatelessWidget {
               const SizedBox(height: 24),
               _buildSectionTitle('Collection', 'Top Seller v'),
               const SizedBox(height: 16),
-              _buildStoreList(),
+              _buildStoreList(context),
             ],
           ),
         ),
@@ -41,7 +43,7 @@ class ExploreScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(String userName) {
+  Widget _buildHeader(BuildContext context, String userName) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -56,16 +58,21 @@ class ExploreScreen extends StatelessWidget {
             Text('Explore the best items here..', style: GoogleFonts.inter(fontSize: 14, color: AppTheme.textLight)),
           ],
         ),
-        Stack(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppTheme.textLight.withOpacity(0.2))),
-              child: const Icon(FluentIcons.alert_24_regular, color: AppTheme.textDark),
-            ),
-            Positioned(right: 12, top: 12, child: Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle))),
-          ],
-        ),
+          Stack(
+            children: [
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()));
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppTheme.textLight.withOpacity(0.2))),
+                  child: const Icon(FluentIcons.alert_24_regular, color: AppTheme.textDark),
+                ),
+              ),
+              Positioned(right: 12, top: 12, child: Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle))),
+            ],
+          ),
       ],
     );
   }
@@ -193,21 +200,21 @@ class ExploreScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStoreList() {
+  Widget _buildStoreList(BuildContext context) {
     return Column(
       children: [
-        _buildStoreCard('Perfume Shop', '@perfumeshop • Dubai Marina', '4.8 (84 Reviews)', 'https://plus.unsplash.com/premium_photo-1675806655519-75653badeaca?q=80&w=200&auto=format&fit=crop', true, bgType: 'green'),
+        _buildStoreCard(context, 'Perfume Shop', '@perfumeshop • Dubai Marina', '4.8 (84 Reviews)', 'https://plus.unsplash.com/premium_photo-1675806655519-75653badeaca?q=80&w=200&auto=format&fit=crop', true, bgType: 'green'),
         const SizedBox(height: 12),
-        _buildStoreCard('Tigernu', '@tigernu • Dubai Marina', '4.8 (84 Reviews)', 'https://images.unsplash.com/photo-1547949007-56b9c968f921?q=80&w=200&auto=format&fit=crop', true, bgType: 'red'),
+        _buildStoreCard(context, 'Tigernu', '@tigernu • Dubai Marina', '4.8 (84 Reviews)', 'https://images.unsplash.com/photo-1547949007-56b9c968f921?q=80&w=200&auto=format&fit=crop', true, bgType: 'red'),
         const SizedBox(height: 12),
-        _buildStoreCard('Authentic Shoppe', '@ashoppe • Dubai Marina', '4.8 (84 Reviews)', 'https://images.unsplash.com/photo-1491553895911-0055eca6402d?q=80&w=200&auto=format&fit=crop', true, bgType: 'dark'),
+        _buildStoreCard(context, 'Authentic Shoppe', '@ashoppe • Dubai Marina', '4.8 (84 Reviews)', 'https://images.unsplash.com/photo-1491553895911-0055eca6402d?q=80&w=200&auto=format&fit=crop', true, bgType: 'dark'),
         const SizedBox(height: 12),
-        _buildStoreCard('Made with Love', '@madewLove • Dubai Marina', '4.8 (84 Reviews)', 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=200&auto=format&fit=crop', true, bgType: 'gray'),
+        _buildStoreCard(context, 'Made with Love', '@madewLove • Dubai Marina', '4.8 (84 Reviews)', 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=200&auto=format&fit=crop', true, bgType: 'gray'),
       ],
     );
   }
 
-  Widget _buildStoreCard(String name, String location, String rating, String imgUrl, bool isVerified, {required String bgType}) {
+  Widget _buildStoreCard(BuildContext context, String name, String location, String rating, String imgUrl, bool isVerified, {required String bgType}) {
     Color avatarBgColor;
     switch (bgType) {
       case 'green': avatarBgColor = Colors.teal.shade50; break;
@@ -274,7 +281,9 @@ class ExploreScreen extends StatelessWidget {
             ),
           ),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => StoreDetailScreen(storeName: name)));
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primaryLime,
               elevation: 0,

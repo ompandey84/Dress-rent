@@ -14,14 +14,29 @@ class SelectDatesScreen extends StatefulWidget {
 }
 
 class _SelectDatesScreenState extends State<SelectDatesScreen> {
-  DateTime? startDate;
-  DateTime? endDate;
+  int? startDay = 15;
+  int? endDay = 18;
 
   @override
   void initState() {
     super.initState();
-    startDate = DateTime.now().add(const Duration(days: 2));
-    endDate = DateTime.now().add(const Duration(days: 5));
+  }
+
+  void _onDaySelected(int day) {
+    if (day < 10) return; // past dates
+
+    setState(() {
+      if (startDay == null || (startDay != null && endDay != null)) {
+        startDay = day;
+        endDay = null;
+      } else {
+        if (day > startDay!) {
+          endDay = day;
+        } else if (day < startDay!) {
+          startDay = day;
+        }
+      }
+    });
   }
 
   @override
@@ -107,9 +122,9 @@ class _SelectDatesScreenState extends State<SelectDatesScreen> {
                         itemCount: 31,
                         itemBuilder: (context, index) {
                           int day = index + 1;
-                          bool isStart = day == 15;
-                          bool isEnd = day == 18;
-                          bool isInBetween = day > 15 && day < 18;
+                          bool isStart = startDay != null && day == startDay;
+                          bool isEnd = endDay != null && day == endDay;
+                          bool isInBetween = startDay != null && endDay != null && day > startDay! && day < endDay!;
                           bool isPast = day < 10;
                           
                           Color bgColor = Colors.transparent;
@@ -124,19 +139,22 @@ class _SelectDatesScreenState extends State<SelectDatesScreen> {
                             textColor = Colors.grey.shade400;
                           }
                           
-                          return Container(
-                            decoration: BoxDecoration(
-                              color: bgColor,
-                              shape: isStart || isEnd ? BoxShape.circle : BoxShape.rectangle,
-                              borderRadius: isInBetween ? BorderRadius.circular(8) : null,
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              day.toString(),
-                              style: GoogleFonts.inter(
-                                fontSize: 14,
-                                fontWeight: (isStart || isEnd) ? FontWeight.w800 : FontWeight.w600,
-                                color: textColor,
+                          return GestureDetector(
+                            onTap: () => _onDaySelected(day),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: bgColor,
+                                shape: (isStart || isEnd) ? BoxShape.circle : BoxShape.rectangle,
+                                borderRadius: isInBetween ? BorderRadius.circular(8) : null,
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                day.toString(),
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: (isStart || isEnd) ? FontWeight.w800 : FontWeight.w600,
+                                  color: textColor,
+                                ),
                               ),
                             ),
                           );
@@ -170,26 +188,38 @@ class _SelectDatesScreenState extends State<SelectDatesScreen> {
                 
                 const SizedBox(height: 40),
                 // Summary preview
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                Builder(
+                  builder: (context) {
+                    int duration = 0;
+                    if (startDay != null && endDay != null) {
+                      duration = endDay! - startDay!;
+                    } else if (startDay != null) {
+                      duration = 1;
+                    }
+                    double totalPrice = duration * widget.product.price;
+                    
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Rental Duration', style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textLight)),
-                        const SizedBox(height: 4),
-                        Text('3 Days', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textDark)),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Rental Duration', style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textLight)),
+                            const SizedBox(height: 4),
+                            Text('$duration Days', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textDark)),
+                          ],
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text('Est. Rental Price', style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textLight)),
+                            const SizedBox(height: 4),
+                            Text('AED ${totalPrice.toStringAsFixed(2)}', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, color: AppTheme.textDark)),
+                          ],
+                        ),
                       ],
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text('Est. Rental Price', style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textLight)),
-                        const SizedBox(height: 4),
-                        Text('AED ${widget.product.price.toStringAsFixed(2)}', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, color: AppTheme.textDark)),
-                      ],
-                    ),
-                  ],
+                    );
+                  }
                 ),
               ],
             ),

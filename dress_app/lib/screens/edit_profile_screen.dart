@@ -4,6 +4,9 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dress_app/theme.dart';
 import 'package:dress_app/widgets/custom_text_field.dart';
+import 'package:provider/provider.dart';
+import 'package:dress_app/services/app_state.dart';
+import 'package:dress_app/models/user_profile.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({Key? key}) : super(key: key);
@@ -13,11 +16,20 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final _nameController = TextEditingController(text: 'Janson Clark');
-  final _emailController = TextEditingController(text: 'janson.clark@example.com');
-  final _phoneController = TextEditingController(text: '+971 50 123 4567');
-  final _locationController = TextEditingController(text: 'Dubai Marina, UAE');
-  
+  late TextEditingController _nameController;
+  late TextEditingController _emailController;
+  late TextEditingController _phoneController;
+  late TextEditingController _locationController;
+
+  @override
+  void initState() {
+    super.initState();
+    final user = context.read<AppState>().currentUser;
+    _nameController = TextEditingController(text: user.name);
+    _emailController = TextEditingController(text: user.email);
+    _phoneController = TextEditingController(text: user.phone);
+    _locationController = TextEditingController(text: user.location);
+  }
   @override
   void dispose() {
     _nameController.dispose();
@@ -119,34 +131,39 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF6F8FA),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey.shade200),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
+                  GestureDetector(
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Change password coming soon!')));
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF6F8FA),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(FluentIcons.lock_closed_24_regular, color: AppTheme.textDark, size: 20),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(FluentIcons.lock_closed_24_regular, color: AppTheme.textDark, size: 20),
+                              ),
+                              const SizedBox(width: 16),
+                              Text('Change Password', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textDark)),
+                            ],
                           ),
-                          const SizedBox(width: 16),
-                          Text('Change Password', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textDark)),
+                          const Icon(FluentIcons.chevron_right_24_regular, color: AppTheme.textLight, size: 20),
                         ],
                       ),
-                      const Icon(FluentIcons.chevron_right_24_regular, color: AppTheme.textLight, size: 20),
-                    ],
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -167,6 +184,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
               child: ElevatedButton(
                 onPressed: () {
+                  final currentUser = context.read<AppState>().currentUser;
+                  final updatedUser = UserProfile(
+                    id: currentUser.id,
+                    name: _nameController.text,
+                    email: _emailController.text,
+                    avatarUrl: currentUser.avatarUrl,
+                    phone: _phoneController.text,
+                    location: _locationController.text,
+                    isVendor: currentUser.isVendor,
+                  );
+                  context.read<AppState>().updateUserProfile(updatedUser);
+
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Profile updated successfully!', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),

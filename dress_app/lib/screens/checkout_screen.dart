@@ -4,6 +4,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:dress_app/theme.dart';
 import 'package:dress_app/models/product.dart';
 import 'package:dress_app/screens/shipping_address_screen.dart';
+import 'dart:async';
 import 'package:dress_app/screens/add_card_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -19,7 +20,34 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   String rentalDates = 'Mar 15 - Mar 18, 2026';
   bool isPromoApplied = false;
   Duration timeRemaining = const Duration(minutes: 10, seconds: 0);
+  Timer? _timer;
+  final TextEditingController _promoController = TextEditingController();
   
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  void _startTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (timeRemaining.inSeconds > 0) {
+        setState(() {
+          timeRemaining -= const Duration(seconds: 1);
+        });
+      } else {
+        _timer?.cancel();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _promoController.dispose();
+    super.dispose();
+  }
+
   int _selectedAddressIndex = 0;
   final List<Map<String, dynamic>> _addresses = [
     {
@@ -72,7 +100,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'Item reserved. Complete checkout in 09:59',
+                          'Item reserved. Complete checkout in ${timeRemaining.inMinutes.toString().padLeft(2, '0')}:${(timeRemaining.inSeconds % 60).toString().padLeft(2, '0')}',
                           style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.orange.shade900),
                         ),
                       ),
@@ -148,7 +176,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     Text('SHIPPING TO', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textLight, letterSpacing: 1.0)),
                     GestureDetector(
                       onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => ShippingAddressScreen(product: widget.product)));
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => ShippingAddressScreen(product: widget.product))).then((newAddress) {
+                          if (newAddress != null) {
+                            setState(() {
+                              _addresses.add(newAddress as Map<String, dynamic>);
+                              _selectedAddressIndex = _addresses.length - 1;
+                            });
+                          }
+                        });
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -233,6 +268,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: TextField(
+                          controller: _promoController,
                           decoration: InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Enter promo code',
@@ -241,7 +277,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         ),
                       ),
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          if (_promoController.text.trim().isNotEmpty) {
+                            setState(() {
+                              isPromoApplied = true;
+                            });
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Promo code applied successfully!'), backgroundColor: Colors.green));
+                          }
+                        },
                         child: Text('Apply', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.textDark)),
                       ),
                     ],
@@ -259,27 +302,34 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: Colors.grey.shade200),
                   ),
-                  child: Column(
-                    children: [
-                      _buildSummaryRow('Rental Price (3 days)', 'AED ${widget.product.price.toStringAsFixed(2)}'),
-                      const SizedBox(height: 12),
-                      _buildSummaryRow('Delivery Fee (2.5 km)', 'AED 20.00'),
-                      const SizedBox(height: 12),
-                      _buildSummaryRow('Security Deposit (Refundable)', 'AED 100.00'),
-                      const SizedBox(height: 12),
-                      _buildSummaryRow('Discount', '- AED 0.00', color: Colors.green),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        child: Divider(height: 1),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Builder(
+                    builder: (context) {
+                      double discount = isPromoApplied ? 20.0 : 0.0;
+                      double total = widget.product.price + 20 + 100 - discount;
+                      
+                      return Column(
                         children: [
-                          Text('Total', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textDark)),
-                          Text('AED ${(widget.product.price + 20 + 100).toStringAsFixed(2)}', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w900, color: const Color(0xFF0C6B86))),
+                          _buildSummaryRow('Rental Price (3 days)', 'AED ${widget.product.price.toStringAsFixed(2)}'),
+                          const SizedBox(height: 12),
+                          _buildSummaryRow('Delivery Fee (2.5 km)', 'AED 20.00'),
+                          const SizedBox(height: 12),
+                          _buildSummaryRow('Security Deposit (Refundable)', 'AED 100.00'),
+                          const SizedBox(height: 12),
+                          _buildSummaryRow('Discount', '- AED ${discount.toStringAsFixed(2)}', color: Colors.green),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 12),
+                            child: Divider(height: 1),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Total', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textDark)),
+                              Text('AED ${total.toStringAsFixed(2)}', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w900, color: const Color(0xFF0C6B86))),
+                            ],
+                          ),
                         ],
-                      ),
-                    ],
+                      );
+                    }
                   ),
                 ),
               ],

@@ -23,7 +23,9 @@ class MessageListScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(FluentIcons.search_24_regular, color: AppTheme.textDark),
-            onPressed: () {},
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Search coming soon')));
+            },
           ),
           const SizedBox(width: 8),
         ],
