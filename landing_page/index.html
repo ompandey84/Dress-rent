@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dress App - Premium Shopping Experience</title>
+    <meta name="description"
+        content="Discover premium fashion items from top influencers and brands like ZARA with the Dress App.">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <!-- Fluent Icons Style placeholder -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <header class="navbar" id="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <a href="index.html" class="logo">Dress.</a>
+                <nav class="nav-links">
+                    <a href="#features">Features</a>
+                    <a href="#demo">Preview</a>
+                    <a href="contact.html">Contact Us</a>
+                </nav>
+                <div class="nav-actions">
+                    <a href="#download" class="btn btn-primary">Download App</a>
+                </div>
+                <!-- Mobile Menu Button -->
+                <button class="mobile-menu-btn" id="mobile-menu-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <!-- Mobile Menu Dropdown -->
+            <div class="mobile-menu" id="mobile-menu">
+                <a href="#features">Features</a>
+                <a href="#demo">Preview</a>
+                <a href="contact.html">Contact Us</a>
+                <a href="#download" class="btn btn-primary" style="margin-top: 10px;">Download App</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container hero-container">
+            <div class="hero-content">
+                <div class="greeting">
+                    <h1>WELCOME! <span>👋</span></h1>
+                    <p class="subtitle">Explore the best items here..</p>
+                </div>
+
+                <h2 class="hero-title">Premium Indian Fashion, Crafted for You</h2>
+                <p class="hero-description">
+                    Discover local influencers, top homegrown brands, and handpicked curations. Proudly made in
+                    India—shop seamlessly and track your orders with our state-of-the-art AR features.
+                </p>
+
+                <div class="hero-buttons">
+                    <a href="#download" class="btn btn-primary lg">Get the App</a>
+                    <a href="#demo" class="btn btn-outline lg">View Demo <i class="fas fa-arrow-down"></i></a>
+                </div>
+
+                <!-- Influencers Strip mimicking app's UI -->
+                <div class="influencer-section">
+                    <h3>Explore Our<br>Influencer</h3>
+                    <div class="influencer-list">
+                        <div class="influencer you">
+                            <div class="avatar-wrap">
+                                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop"
+                                    alt="You">
+                                <div class="add-icon"><i class="fas fa-plus"></i></div>
+                            </div>
+                            <span class="name">You</span>
+                        </div>
+                        <div class="influencer">
+                            <div class="avatar-wrap verified">
+                                <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=200&auto=format&fit=crop"
+                                    alt="Alex H.">
+                                <div class="verified-icon"><i class="fas fa-check-circle"></i></div>
+                            </div>
+                            <span class="name">Alex H.</span>
+                        </div>
+                        <div class="influencer">
+                            <div class="avatar-wrap verified">
+                                <img src="https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?q=80&w=200&auto=format&fit=crop"
+                                    alt="David W.">
+                                <div class="verified-icon"><i class="fas fa-check-circle"></i></div>
+                            </div>
+                            <span class="name">David W.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-image-wrapper">
+                <!-- A mockup container imitating a phone screen -->
+                <div class="phone-mockup">
+                    <div class="screen">
+                        <div class="mockup-header">
+                            <div class="search-bar">
+                                <i class="fas fa-search"></i>
+                                <span>Search items, sellers...</span>
+                                <i class="fas fa-sliders-h right-icon"></i>
+                            </div>
+                            <div class="chips">
+                                <span class="active">All</span>
+                                <span>New Arrived</span>
+                                <span>Popular</span>
+                            </div>
+                        </div>
+                        <div class="mockup-grid">
+                            <!-- Card 1 -->
+                            <div class="mockup-card">
+                                <div class="mockup-image">
+                                    <img src="https://images.unsplash.com/photo-1618932260643-eee4a2f652a6?q=80&w=300&auto=format&fit=crop"
+                                        alt="Product">
+                                    <div class="pill">₹2,499</div>
+                                    <div class="heart"><i class="fas fa-heart"></i></div>
+                                </div>
+                                <div class="mockup-card-body">
+                                    <div class="location">Indore, MP <i class="fas fa-check-circle verified-sm"></i>
+                                    </div>
+                                    <div class="title-row">
+                                        <h4>Handcrafted Kurta</h4>
+                                        <div class="rating">4.8 <i class="fas fa-star"></i></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Card 2 -->
+                            <div class="mockup-card" style="margin-top: 20px;">
+                                <div class="mockup-image" style="height: 150px;">
+                                    <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=300&auto=format&fit=crop"
+                                        alt="Product">
+                                    <div class="pill">₹3,999</div>
+                                    <div class="heart"><i class="fas fa-heart"></i></div>
+                                </div>
+                                <div class="mockup-card-body">
+                                    <div class="location">Mumbai, MH <i class="fas fa-check-circle verified-sm"></i>
+                                    </div>
+                                    <div class="title-row">
+                                        <h4>Premium Indo-Western</h4>
+                                        <div class="rating">4.9 <i class="fas fa-star"></i></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Details/Demo Section -->
+    <section class="demo-section" id="demo">
+        <div class="container section-container">
+            <div class="section-image">
+                <div class="phone-details-mockup">
+                    <div class="product-hero-image">
+                        <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=500&auto=format&fit=crop"
+                            alt="Product Detail">
+                        <div class="floating-header">
+                            <div class="icon-circle"><i class="fas fa-chevron-left"></i></div>
+                            <span class="detail-title">PRODUCT DETAILS</span>
+                            <div class="icon-circle"><i class="fas fa-shopping-cart"></i></div>
+                        </div>
+                        <div class="ar-btn"><i class="fas fa-cube"></i></div>
+                    </div>
+                    <div class="details-body">
+                        <div class="title-price">
+                            <div>
+                                <span class="loc-text">Sudama Nagar, Indore</span>
+                                <h2>PREMIUM APPAREL</h2>
+                            </div>
+                            <div class="price">₹3,999</div>
+                        </div>
+                        <div class="reviews-row">
+                            <span class="stars"><i class="fas fa-star"></i> 4.9 <span class="muted">| 50
+                                    reviews</span></span>
+                            <div class="chat-circle"><i class="fas fa-comment"></i></div>
+                        </div>
+
+                        <div class="store-card">
+                            <div class="store-logo">IND</div>
+                            <div class="store-info">
+                                <h4>Indore Ethnic Wear <i class="fas fa-check-circle verified-sm"></i></h4>
+                                <span><i class="fas fa-map-marker-alt"></i> Sudama Nagar, Indore</span>
+                            </div>
+                            <div class="btn btn-primary sm">Visit Store</div>
+                        </div>
+                        <div class="bottom-buy">
+                            <button class="btn btn-primary block lg">BUY IT NOW</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="section-content">
+                <span class="tag">Proudly Indian</span>
+                <h2>Detailed Insights,<br>Premium Desi Shopping.</h2>
+                <p>
+                    Experience the richness of Indian craftsmanship in high resolution. Supporting local boutiques and
+                    big Indian brands, all from the heart of MP.
+                </p>
+                <ul class="feature-list">
+                    <li><i class="fas fa-cube feature-icon"></i> <strong>AR View:</strong> Try on clothes in Augmented
+                        Reality before buying.</li>
+                    <li><i class="fas fa-comments feature-icon"></i> <strong>Direct Chat:</strong> Instantly clarify
+                        doubts directly with the sellers.</li>
+                    <li><i class="fas fa-check-circle feature-icon"></i> <strong>Verified Sellers:</strong> Buy
+                        confidently from Verified sellers.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action (Download) -->
+    <section class="cta" id="download">
+        <div class="container cta-container">
+            <h2>Ready to Upgrade Your Style?</h2>
+            <p>Download the Dress app today and join top influencers in exploring the finest curations.</p>
+            <div class="store-buttons">
+                <!-- Using generic image tags for store badges for placeholder -->
+                <a href="#"><img
+                        src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg"
+                        alt="Download on App Store"></a>
+                <a href="#"><img
+                        src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
+                        alt="Get it on Google Play"></a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer with Legal Links -->
+    <footer class="footer">
+        <div class="container footer-container">
+            <div class="footer-brand">
+                <a href="index.html" class="logo">Dress.</a>
+                <p>Your premium fashion gateway.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                </div>
+            </div>
+
+            <div class="footer-links">
+                <div class="link-col">
+                    <h4>Company</h4>
+                    <a href="#">About Us</a>
+                    <a href="#">Careers</a>
+                    <a href="#">Press</a>
+                </div>
+                <div class="link-col">
+                    <h4>Help & Support</h4>
+                    <a href="contact.html">Contact Us</a>
+                    <a href="#">FAQ</a>
+                    <a href="#">Shipping Guide</a>
+                </div>
+                <div class="link-col">
+                    <h4>Legal</h4>
+                    <a href="privacy-policy.html">Privacy Policy</a>
+                    <a href="terms-conditions.html">Terms & Conditions</a>
+                    <a href="refund-policy.html">Refund Policy</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container">
+                <p>&copy; 2026 Dress App. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Main JS -->
+    <script src="js/main.js"></script>
+</body>
+
+</html>

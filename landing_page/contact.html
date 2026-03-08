@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - Dress App</title>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .contact-section {
+            padding: 120px 0 60px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .contact-section h1 {
+            margin-bottom: 16px;
+            font-size: 2.5rem;
+            text-align: center;
+        }
+
+        .contact-section p {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            height: 150px;
+        }
+
+        .contact-info {
+            margin-top: 60px;
+            text-align: center;
+        }
+
+        .contact-info p {
+            margin-bottom: 10px;
+        }
+
+        .contact-info i {
+            margin-right: 8px;
+            color: var(--text-dark);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <header class="navbar scrolled">
+        <div class="container">
+            <div class="nav-content">
+                <a href="index.html" class="logo">Dress.</a>
+                <nav class="nav-links">
+                    <a href="index.html#features">Features</a>
+                    <a href="index.html#demo">Preview</a>
+                    <a href="contact.html">Contact Us</a>
+                </nav>
+                <div class="nav-actions">
+                    <a href="index.html#download" class="btn btn-primary">Download App</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <section class="contact-section container">
+        <h1>Get in Touch</h1>
+        <p>Have questions, concerns, or feedback? Send us a message and our team will get back to you as soon as
+            possible.</p>
+
+        <form action="#" method="POST"
+            onsubmit="event.preventDefault(); alert('Message sent successfully! We will get back to you soon.');">
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" required placeholder="John Doe">
+            </div>
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required placeholder="john@example.com">
+            </div>
+            <div class="form-group">
+                <label for="subject">Subject</label>
+                <input type="text" id="subject" name="subject" required placeholder="How can we help?">
+            </div>
+            <div class="form-group">
+                <label for="message">Message</label>
+                <textarea id="message" name="message" required placeholder="Type your message here..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary block lg">Send Message</button>
+        </form>
+
+        <div class="contact-info">
+            <p><strong>Arpan Rai</strong></p>
+            <p><i class="fas fa-envelope"></i> support@dressapp.com</p>
+            <p><i class="fas fa-phone"></i> +91 9770511893</p>
+            <p><i class="fas fa-map-marker-alt"></i> Sudama Nagar, Indore, Madhya Pradesh, India</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container footer-container">
+            <div class="footer-brand">
+                <a href="index.html" class="logo">Dress.</a>
+                <p>Your premium fashion gateway.</p>
+            </div>
+            <div class="footer-links">
+                <div class="link-col">
+                    <h4>Legal</h4>
+                    <a href="privacy-policy.html">Privacy Policy</a>
+                    <a href="terms-conditions.html">Terms & Conditions</a>
+                    <a href="refund-policy.html">Refund Policy</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container">
+                <p>&copy; 2026 Dress App. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

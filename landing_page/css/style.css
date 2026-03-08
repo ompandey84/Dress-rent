@@ -1,0 +1,851 @@
+/* 
+    Dress App Landing Page Stylesheet
+    Matches the Flutter app design tokens.
+*/
+
+:root {
+    --primary-lime: #E8F87B;
+    --dark-teal: #0F1E29;
+    --background-light: #F7F9FB;
+    --bg-gradient-top: #E4F4FA;
+    --dark-background: #1C222B;
+    --surface-white: #FFFFFF;
+    --text-dark: #1E2022;
+    --text-light: #8C959D;
+    
+    --font-main: 'Inter', sans-serif;
+    
+    --transition: 0.3s ease;
+    --shadow-soft: 0 4px 10px rgba(0,0,0,0.04);
+    --shadow-hover: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-main);
+    background-color: var(--background-light);
+    color: var(--text-dark);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* ==================================
+   TYPOGRAPHY
+   ================================== */
+h1 { font-weight: 900; font-size: 3rem; letter-spacing: -1px; }
+h2 { font-weight: 800; font-size: 2.5rem; letter-spacing: -0.5px; }
+h3 { font-weight: 800; font-size: 1.5rem; line-height: 1.2; }
+h4 { font-weight: 800; font-size: 1.1rem; }
+p { font-weight: 400; font-size: 1rem; color: var(--text-light); }
+
+/* ==================================
+   BUTTONS
+   ================================== */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 24px;
+    border-radius: 100px;
+    font-weight: 700;
+    font-size: 1rem;
+    transition: var(--transition);
+    cursor: pointer;
+    border: none;
+    text-align: center;
+}
+
+.btn-primary {
+    background-color: var(--primary-lime);
+    color: var(--text-dark);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(232, 248, 123, 0.4);
+}
+
+.btn-outline {
+    background-color: transparent;
+    color: var(--text-dark);
+    border: 2px solid var(--text-dark);
+}
+
+.btn-outline:hover {
+    background-color: var(--text-dark);
+    color: var(--surface-white);
+}
+
+.btn.lg {
+    padding: 16px 32px;
+    font-size: 1.125rem;
+}
+
+.btn.sm {
+    padding: 10px 16px;
+    font-size: 0.85rem;
+}
+
+.btn.block {
+    width: 100%;
+}
+
+/* ==================================
+   NAVBAR
+   ================================== */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 100;
+    padding: 20px 0;
+    transition: var(--transition);
+}
+
+.navbar.scrolled {
+    background-color: var(--surface-white);
+    padding: 15px 0;
+    box-shadow: var(--shadow-soft);
+}
+
+.nav-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-weight: 900;
+    font-size: 1.5rem;
+    color: var(--text-dark);
+    letter-spacing: -1px;
+}
+
+.nav-links {
+    display: flex;
+    gap: 32px;
+}
+
+.nav-links a {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--text-dark);
+    transition: var(--transition);
+}
+
+.nav-links a:hover {
+    color: var(--text-light);
+}
+
+.mobile-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-dark);
+    cursor: pointer;
+}
+
+.mobile-menu {
+    display: none;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px 0;
+}
+
+.mobile-menu.active {
+    display: flex;
+}
+
+/* ==================================
+   HERO SECTION
+   ================================== */
+.hero {
+    background: linear-gradient(180deg, var(--bg-gradient-top) 0%, var(--background-light) 30%, var(--background-light) 100%);
+    min-height: 100vh;
+    padding-top: 120px;
+    padding-bottom: 60px;
+    display: flex;
+    align-items: center;
+}
+
+.hero-container {
+    display: flex;
+    align-items: center;
+    gap: 64px;
+}
+
+.hero-content {
+    flex: 1;
+}
+
+.greeting {
+    margin-bottom: 16px;
+}
+
+.greeting h1 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 2rem;
+}
+
+.greeting .subtitle {
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.hero-title {
+    margin-bottom: 24px;
+    line-height: 1.1;
+}
+
+.hero-description {
+    font-size: 1.125rem;
+    margin-bottom: 40px;
+    max-width: 500px;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 60px;
+}
+
+.hero-buttons i {
+    margin-left: 8px;
+}
+
+/* Influencer Area inside Hero */
+.influencer-section {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.influencer-list {
+    display: flex;
+    gap: 16px;
+}
+
+.influencer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.avatar-wrap {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    padding: 3px;
+    background: linear-gradient(to bottom left, #2E8A99, #ECA04F);
+    position: relative;
+}
+
+.avatar-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid var(--surface-white);
+}
+
+.influencer.you .avatar-wrap {
+    background: transparent;
+    padding: 0;
+}
+.influencer.you .avatar-wrap img {
+    border: none;
+}
+
+.add-icon {
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--text-dark);
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    border: 2px solid white;
+}
+
+.verified-icon {
+    position: absolute;
+    bottom: 0;
+    right: -4px;
+    background: white;
+    color: #4CAF50;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.influencer .name {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* App Mockup UI */
+.hero-image-wrapper {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.phone-mockup {
+    width: 320px;
+    height: 650px;
+    background: var(--text-dark);
+    border-radius: 40px;
+    padding: 12px;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+    position: relative;
+    transform: rotate(2deg);
+    transition: var(--transition);
+}
+
+.phone-mockup:hover {
+    transform: rotate(0deg) translateY(-10px);
+}
+
+.screen {
+    background-color: var(--background-light);
+    width: 100%;
+    height: 100%;
+    border-radius: 30px;
+    overflow: hidden;
+    position: relative;
+}
+
+.mockup-header {
+    background: white;
+    padding: 40px 16px 16px;
+    border-bottom: 1px solid #eee;
+}
+
+.search-bar {
+    background: var(--surface-white);
+    border-radius: 100px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    box-shadow: var(--shadow-soft);
+    margin-bottom: 16px;
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+.search-bar i { margin-right: 12px; color: var(--text-dark); }
+.search-bar .right-icon { margin-left: auto; margin-right: 0;}
+
+.chips {
+    display: flex;
+    gap: 8px;
+}
+
+.chips span {
+    padding: 6px 14px;
+    background: var(--surface-white);
+    border-radius: 100px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.chips span.active {
+    background: var(--text-dark);
+    color: white;
+    font-weight: 600;
+}
+
+.mockup-grid {
+    padding: 16px;
+    display: flex;
+    gap: 12px;
+}
+
+.mockup-card {
+    flex: 1;
+}
+
+.mockup-image {
+    position: relative;
+    height: 200px;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.mockup-image img { width: 100%; height: 100%; object-fit: cover;}
+
+.mockup-image .heart {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ff4b4b;
+    font-size: 12px;
+}
+
+.mockup-image .pill {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: var(--primary-lime);
+    padding: 6px 12px;
+    border-radius: 100px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--text-dark);
+}
+
+.mockup-card-body .location {
+    font-size: 0.7rem;
+    color: var(--text-light);
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.verified-sm { color: #4CAF50; font-size: 10px; }
+
+.title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.title-row h4 {
+    font-size: 0.85rem;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.title-row .rating {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+.title-row .rating i { color: #FFC107; font-size: 10px;}
+
+/* ==================================
+   DEMO / DETAILS SECTION
+   ================================== */
+.demo-section {
+    padding: 100px 0;
+    background-color: var(--surface-white);
+}
+
+.section-container {
+    display: flex;
+    align-items: center;
+    gap: 80px;
+}
+
+.section-image {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.section-content {
+    flex: 1;
+}
+
+.section-content .tag {
+    display: inline-block;
+    padding: 6px 12px;
+    background: var(--bg-gradient-top);
+    border-radius: 100px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+.section-content h2 {
+    margin-bottom: 24px;
+}
+
+.section-content p {
+    font-size: 1.125rem;
+    margin-bottom: 32px;
+}
+
+.feature-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.feature-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    font-size: 1rem;
+    color: var(--text-dark);
+}
+
+.feature-list .feature-icon {
+    margin-top: 4px;
+    color: var(--text-dark);
+    font-size: 1.25rem;
+}
+
+/* Secondary Mockup (Detailed view) */
+.phone-details-mockup {
+    width: 320px;
+    height: 650px;
+    background: white;
+    border-radius: 40px;
+    overflow: hidden;
+    box-shadow: var(--shadow-hover);
+    position: relative;
+    border: 10px solid var(--text-dark);
+}
+
+.product-hero-image {
+    height: 350px;
+    position: relative;
+    border-radius: 0 0 24px 24px;
+    overflow: hidden;
+}
+
+.product-hero-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.floating-header {
+    position: absolute;
+    top: 40px;
+    left: 16px;
+    right: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.floating-header .icon-circle {
+    width: 36px;
+    height: 36px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.floating-header .detail-title {
+    color: white;
+    font-weight: 800;
+    font-size: 0.85rem;
+}
+
+.ar-btn {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.5);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.details-body {
+    padding: 20px 16px;
+}
+
+.title-price {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.loc-text { font-size: 0.8rem; font-weight: 600; }
+.title-price h2 { font-size: 1.25rem; font-weight: 900; margin-top: 2px;}
+.title-price .price { font-size: 1.1rem; font-weight: 900; color: #0C6B86; }
+
+.reviews-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.reviews-row .stars { font-weight: 800; font-size: 0.9rem;}
+.reviews-row .stars i { color: #FBBC05; }
+.reviews-row .muted { font-weight: 700; color: var(--text-light); }
+
+.chat-circle {
+    background: #EAF1F5;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.store-card {
+    background: #F6F8FA;
+    border-radius: 16px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.store-logo {
+    width: 40px;
+    height: 40px;
+    background: black;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 0.7rem;
+}
+
+.store-info h4 { font-size: 0.85rem; display: flex; align-items: center; gap:4px; }
+.store-info span { font-size: 0.75rem; color: var(--text-dark); font-weight: 600;}
+.store-card .btn { margin-left: auto; padding: 6px 12px; font-size: 0.75rem; }
+
+.bottom-buy {
+    position: absolute;
+    bottom: 20px;
+    left: 16px;
+    right: 16px;
+    box-shadow: 0 8px 15px rgba(232,248,123,0.3);
+    border-radius: 100px;
+}
+
+/* ==================================
+   CTA SECTION
+   ================================== */
+.cta {
+    background-color: var(--dark-teal);
+    color: var(--surface-white);
+    padding: 80px 0;
+    text-align: center;
+}
+
+.cta-container h2 {
+    margin-bottom: 16px;
+}
+
+.cta-container p {
+    color: #b0b8c1;
+    font-size: 1.125rem;
+    margin-bottom: 32px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.store-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+}
+
+.store-buttons img {
+    height: 48px;
+    cursor: pointer;
+    transition: transform var(--transition);
+}
+
+.store-buttons img:hover {
+    transform: translateY(-2px);
+}
+
+
+/* ==================================
+   FOOTER
+   ================================== */
+.footer {
+    background-color: var(--dark-background);
+    color: var(--surface-white);
+    padding-top: 80px;
+}
+
+.footer-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 40px;
+    margin-bottom: 60px;
+}
+
+.footer-brand .logo {
+    color: var(--surface-white);
+    margin-bottom: 16px;
+    display: block;
+}
+
+.footer-brand p {
+    color: #8C959D;
+    margin-bottom: 24px;
+}
+
+.social-links {
+    display: flex;
+    gap: 16px;
+}
+
+.social-links a {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.social-links a:hover {
+    background: var(--primary-lime);
+    color: var(--text-dark);
+}
+
+.footer-links {
+    display: flex;
+    gap: 60px;
+}
+
+.link-col h4 {
+    margin-bottom: 20px;
+    color: white;
+}
+
+.link-col a {
+    display: block;
+    color: #8C959D;
+    margin-bottom: 12px;
+    transition: var(--transition);
+}
+
+.link-col a:hover {
+    color: var(--primary-lime);
+}
+
+.footer-bottom {
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding: 24px 0;
+    text-align: center;
+}
+
+.footer-bottom p {
+    color: #8C959D;
+    font-size: 0.875rem;
+}
+
+/* ==================================
+   RESPONSIVE DESIGN
+   ================================== */
+@media (max-width: 992px) {
+    .hero-container {
+        flex-direction: column;
+        text-align: center;
+        gap: 40px;
+    }
+    .hero-description {
+        margin: 0 auto 40px;
+    }
+    .hero-buttons {
+        justify-content: center;
+    }
+    .influencer-section {
+        flex-direction: column;
+        align-items: center;
+    }
+    .influencer-section h3 {
+        text-align: center;
+    }
+    .section-container {
+        flex-direction: column;
+        text-align: center;
+    }
+    .feature-list li {
+        align-items: center;
+        text-align: left;
+    }
+    .footer-container {
+        flex-direction: column;
+    }
+    .footer-links {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 768px) {
+    .nav-links, .nav-actions {
+        display: none;
+    }
+    .mobile-menu-btn {
+        display: block;
+    }
+    
+    h1 { font-size: 2.2rem; }
+    h2 { font-size: 2rem; }
+    
+    .influencer-list {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
