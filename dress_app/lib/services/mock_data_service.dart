@@ -18,7 +18,8 @@ class MockDataService {
     name: 'Arafat',
     email: 'arafat@example.com',
     phone: '+971 50 123 4567',
-    avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=200&auto=format&fit=crop',
+    avatarUrl:
+        'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=200&auto=format&fit=crop',
     isVendor: false,
     addresses: [
       Address(
@@ -51,10 +52,11 @@ class MockDataService {
       category: 'Streetwear',
       price: 295.0,
       originalPrice: 350.0,
-      description: 'Classic streetwear premium hoodie made with 100% organic cotton. Perfect for evening outings.',
+      description:
+          'Classic streetwear premium hoodie made with 100% organic cotton. Perfect for evening outings.',
       images: [
-        'https://images.unsplash.com/photo-1556821840-b9d3f4b4f001?q=80&w=600&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=600&auto=format&fit=crop',
+        'https://i0.wp.com/bhutshirt.in/wp-content/uploads/2022/11/3.png?fit=890%2C1348&ssl=1',
+        'https://i0.wp.com/bhutshirt.in/wp-content/uploads/2022/11/3.png?fit=890%2C1348&ssl=1',
       ],
       sizes: ['S', 'M', 'L', 'XL'],
       colors: ['Black', 'Grey', 'Navy'],
@@ -68,7 +70,8 @@ class MockDataService {
       name: 'Elegant Evening Dress',
       category: 'Formal',
       price: 450.0,
-      description: 'Stunning evening dress perfect for weddings and formal events. Features delicate lacework.',
+      description:
+          'Stunning evening dress perfect for weddings and formal events. Features delicate lacework.',
       images: [
         'https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?q=80&w=600&auto=format&fit=crop',
       ],
@@ -84,7 +87,8 @@ class MockDataService {
       name: 'Casual Denim Jacket',
       category: 'Casual',
       price: 150.0,
-      description: 'Vintage wash denim jacket. A versatile piece for your everyday wardrobe.',
+      description:
+          'Vintage wash denim jacket. A versatile piece for your everyday wardrobe.',
       images: [
         'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?q=80&w=600&auto=format&fit=crop',
       ],
@@ -101,9 +105,10 @@ class MockDataService {
       category: 'Formal',
       price: 850.0,
       originalPrice: 1200.0,
-      description: 'Complete 3-piece tailored suit set. Includes blazer, trousers, and waistcoat.',
+      description:
+          'Complete 3-piece tailored suit set. Includes blazer, trousers, and waistcoat.',
       images: [
-        'https://images.unsplash.com/photo-1594938298596-eb5fd5f5b468?q=80&w=600&auto=format&fit=crop',
+        'https://cdn.exoticindia.com/images/products/original/textiles-10-2024/gaj984-steelgrey.jpg',
       ],
       sizes: ['38R', '40R', '42R', '44R'],
       colors: ['Navy', 'Charcoal', 'Black'],
@@ -121,7 +126,8 @@ class MockDataService {
       itemsCount: 2,
       totalPrice: 415.00,
       status: OrderStatus.requested,
-      imageUrl: 'https://images.unsplash.com/photo-1556821840-b9d3f4b4f001?q=80&w=200&auto=format&fit=crop',
+      imageUrl:
+          'https://images.unsplash.com/photo-1556821840-b9d3f4b4f001?q=80&w=200&auto=format&fit=crop',
     ),
     Order(
       id: '#ORD-9820',
@@ -129,7 +135,8 @@ class MockDataService {
       itemsCount: 1,
       totalPrice: 295.00,
       status: OrderStatus.preparing,
-      imageUrl: 'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?q=80&w=200&auto=format&fit=crop',
+      imageUrl:
+          'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?q=80&w=200&auto=format&fit=crop',
     ),
     Order(
       id: '#ORD-9815',
@@ -137,7 +144,8 @@ class MockDataService {
       itemsCount: 3,
       totalPrice: 850.00,
       status: OrderStatus.outForDelivery,
-      imageUrl: 'https://images.unsplash.com/photo-1594938298596-eb5fd5f5b468?q=80&w=200&auto=format&fit=crop',
+      imageUrl:
+          'https://images.unsplash.com/photo-1594938298596-eb5fd5f5b468?q=80&w=200&auto=format&fit=crop',
     ),
     Order(
       id: '#ORD-9799',
@@ -145,7 +153,8 @@ class MockDataService {
       itemsCount: 1,
       totalPrice: 150.00,
       status: OrderStatus.delivered,
-      imageUrl: 'https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?q=80&w=200&auto=format&fit=crop',
+      imageUrl:
+          'https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?q=80&w=200&auto=format&fit=crop',
     ),
     Order(
       id: '#ORD-9750',
@@ -153,7 +162,8 @@ class MockDataService {
       itemsCount: 1,
       totalPrice: 350.00,
       status: OrderStatus.refunded,
-      imageUrl: 'https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?q=80&w=200&auto=format&fit=crop',
+      imageUrl:
+          'https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?q=80&w=200&auto=format&fit=crop',
     ),
   ];
 
@@ -168,7 +178,8 @@ class MockDataService {
     NotificationItem(
       id: 'n2',
       title: 'Special Promo',
-      description: 'Get 20% off on all formal wear this weekend using code FORMAL20.',
+      description:
+          'Get 20% off on all formal wear this weekend using code FORMAL20.',
       timeText: 'Yesterday',
       type: NotificationType.promo,
       isRead: true,

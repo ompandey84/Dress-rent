@@ -5,14 +5,13 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:dress_app/theme.dart';
-import 'package:dress_app/screens/product_details_screen.dart';
 import 'package:dress_app/services/app_state.dart';
-import 'package:dress_app/widgets/favorite_button.dart';
 import 'package:dress_app/services/mock_data_service.dart';
 import 'package:dress_app/screens/notifications_screen.dart';
 import 'package:dress_app/screens/search_results_screen.dart';
 import 'package:dress_app/screens/category_listing_screen.dart';
 import 'package:dress_app/screens/filters_bottom_sheet.dart';
+import 'package:dress_app/widgets/product_card.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -160,56 +159,45 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildInfluencersSection() {
-    return Row(
-      children: [
-        Text(
-          'Explore Our\nInfluencer',
-          style: GoogleFonts.inter(
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-            color: AppTheme.textDark,
-            height: 1.2,
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: SizedBox(
-            height:
-                110, // Increased height to prevent RenderFlex overflow of text labels
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: [
-                _buildInfluencerAvatar(
-                  isYou: true,
-                  label: 'You',
-                  imgUrl:
-                      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
-                ),
-                const SizedBox(width: 16),
-                _buildInfluencerAvatar(
-                  label: 'Alex H.',
-                  imgUrl:
-                      'https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=200&auto=format&fit=crop',
-                  isVerified: true,
-                ),
-                const SizedBox(width: 16),
-                _buildInfluencerAvatar(
-                  label: 'David W.',
-                  imgUrl:
-                      'https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?q=80&w=200&auto=format&fit=crop',
-                  isVerified: true,
-                ),
-                const SizedBox(width: 16),
-                _buildInfluencerAvatar(
-                  label: 'L.',
-                  imgUrl:
-                      'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=200&auto=format&fit=crop',
-                ),
-              ],
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            'Explore Our\nInfluencer',
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: AppTheme.textDark,
+              height: 1.2,
             ),
           ),
-        ),
-      ],
+          const SizedBox(width: 16),
+          _buildInfluencerAvatar(
+            isYou: true,
+            label: 'You',
+            imgUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
+          ),
+          const SizedBox(width: 16),
+          _buildInfluencerAvatar(
+            label: 'Alex H.',
+            imgUrl: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=200&auto=format&fit=crop',
+            isVerified: true,
+          ),
+          const SizedBox(width: 16),
+          _buildInfluencerAvatar(
+            label: 'David W.',
+            imgUrl: 'https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?q=80&w=200&auto=format&fit=crop',
+            isVerified: true,
+          ),
+          const SizedBox(width: 16),
+          _buildInfluencerAvatar(
+            label: 'L.',
+            imgUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=200&auto=format&fit=crop',
+          ),
+        ],
+      ),
     );
   }
 
@@ -462,10 +450,9 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             children: leftColumn.map((product) => Padding(
               padding: const EdgeInsets.only(bottom: 24),
-              child: _buildProductCard(
-                context,
-                product,
-                260,
+              child: ProductCard(
+                product: product,
+                imageHeight: 260,
               ),
             )).toList(),
           ),
@@ -475,10 +462,9 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             children: rightColumn.map((product) => Padding(
               padding: const EdgeInsets.only(bottom: 24),
-              child: _buildProductCard(
-                context,
-                product,
-                180,
+              child: ProductCard(
+                product: product,
+                imageHeight: 180,
               ),
             )).toList(),
           ),
@@ -486,188 +472,4 @@ class HomeScreen extends StatelessWidget {
       ],
     );
   }
-
-  Widget _buildProductCard(
-    BuildContext context,
-    dynamic product, // keeping dynamic or Product. Wait, we know it's a Product from AppState
-    double height,
-  ) {
-    String title = product.name;
-    String location = product.location;
-    String price = 'AED${product.price.toStringAsFixed(2)}';
-    String rating = product.rating.toString();
-    String imgUrl = product.images.isNotEmpty ? product.images.first : '';
-    bool isVerified = product.isVerifiedStore;
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => ProductDetailsScreen(product: product)),
-        );
-      },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              ClipPath(
-                clipper: const ImageCutoutClipper(),
-                child: CachedNetworkImage(
-                  imageUrl: imgUrl,
-                  height: height,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorWidget: (context, url, error) => Container(color: Colors.grey[200]),
-                ),
-              ),
-              Positioned(
-                top: 12,
-                right: 12,
-                child: FavoriteButton(productId: product.id),
-              ),
-              // Price Pill overlapping the clipped image area
-              Positioned(
-                bottom: 4,
-                right: 4,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryLime,
-                    borderRadius: BorderRadius.circular(100),
-                  ),
-                  child: Text(
-                    price,
-                    style: GoogleFonts.inter(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 11,
-                      color: AppTheme.textDark,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  location,
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: AppTheme.textLight,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              if (isVerified) ...[
-                const SizedBox(width: 4),
-                const Icon(Icons.verified, size: 14, color: Colors.green),
-              ],
-            ],
-          ),
-          const SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: GoogleFonts.inter(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: AppTheme.textDark,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Row(
-                children: [
-                  Text(
-                    rating,
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      color: AppTheme.textLight,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.star, size: 14, color: Colors.amber),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class ImageCutoutClipper extends CustomClipper<Path> {
-  const ImageCutoutClipper();
-
-  @override
-  Path getClip(Size size) {
-    final path = Path();
-    const double r = 24.0;
-    const double cvx = 16.0;
-    const double ir = 14.0;
-    const double cw = 124.0;
-    const double ch = 54.0;
-
-    path.moveTo(r, 0);
-    path.lineTo(size.width - r, 0);
-    path.arcToPoint(
-      Offset(size.width, r),
-      radius: const Radius.circular(r),
-      clockwise: true,
-    );
-
-    path.lineTo(size.width, size.height - ch - cvx);
-    path.arcToPoint(
-      Offset(size.width - cvx, size.height - ch),
-      radius: const Radius.circular(cvx),
-      clockwise: true,
-    );
-
-    path.lineTo(size.width - cw + ir, size.height - ch);
-    path.arcToPoint(
-      Offset(size.width - cw, size.height - ch + ir),
-      radius: const Radius.circular(ir),
-      clockwise: false,
-    );
-
-    path.lineTo(size.width - cw, size.height - cvx);
-    path.arcToPoint(
-      Offset(size.width - cw - cvx, size.height),
-      radius: const Radius.circular(cvx),
-      clockwise: true,
-    );
-
-    path.lineTo(r, size.height);
-    path.arcToPoint(
-      Offset(0, size.height - r),
-      radius: const Radius.circular(r),
-      clockwise: true,
-    );
-
-    path.lineTo(0, r);
-    path.arcToPoint(
-      Offset(r, 0),
-      radius: const Radius.circular(r),
-      clockwise: true,
-    );
-
-    path.close();
-    return path;
-  }
-
-  @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }

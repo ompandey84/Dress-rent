@@ -43,29 +43,52 @@ class CustomTextField extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppTheme.textLight.withOpacity(0.2)),
+        TextFormField(
+          controller: controller,
+          obscureText: isPassword,
+          validator: validator,
+          keyboardType: keyboardType,
+          onChanged: onChanged,
+          inputFormatters: inputFormatters,
+          maxLines: isPassword ? 1 : maxLines,
+          style: GoogleFonts.inter(
+            fontSize: 15,
+            color: AppTheme.textDark,
           ),
-          child: TextFormField(
-            controller: controller,
-            obscureText: isPassword,
-            validator: validator,
-            keyboardType: keyboardType,
-            onChanged: onChanged,
-            inputFormatters: inputFormatters,
-            maxLines: isPassword ? 1 : maxLines,
-            decoration: InputDecoration(
-              hintText: hintText,
-              hintStyle: GoogleFonts.inter(
-                fontSize: 14,
-                color: AppTheme.textLight,
-              ),
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              suffixIcon: suffixIcon,
+          decoration: InputDecoration(
+            hintText: hintText,
+            hintStyle: GoogleFonts.inter(
+              fontSize: 14,
+              color: AppTheme.textLight,
+            ),
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            suffixIcon: suffixIcon,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppTheme.textLight.withOpacity(0.2)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppTheme.textLight.withOpacity(0.2)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppTheme.primaryLime, width: 2),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.redAccent, width: 2),
+            ),
+            errorStyle: GoogleFonts.inter(
+              color: Colors.redAccent,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),

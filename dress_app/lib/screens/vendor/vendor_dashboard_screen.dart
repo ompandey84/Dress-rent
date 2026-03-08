@@ -60,21 +60,6 @@ class VendorDashboardScreen extends StatelessWidget {
       children: [
         Row(
           children: [
-            GestureDetector(
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4)),
-                  ],
-                ),
-                child: const Icon(FluentIcons.chevron_left_24_regular, color: AppTheme.textDark, size: 20),
-              ),
-            ),
-            const SizedBox(width: 16),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
