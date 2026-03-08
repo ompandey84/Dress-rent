@@ -5,54 +5,60 @@ import 'package:dress_app/theme.dart';
 import 'package:dress_app/screens/rating_screen.dart';
 import 'package:dress_app/screens/early_pickup_screen.dart';
 
+import 'package:dress_app/models/order.dart';
+
 class RequestedOrderScreen extends StatelessWidget {
-  const RequestedOrderScreen({Key? key}) : super(key: key);
+  final Order order;
+  const RequestedOrderScreen({Key? key, required this.order}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return _BaseTrackingScreen(
       title: 'REQUESTED ORDER',
       currentStep: 0,
-      orderCost: 'AED 415.00',
+      orderCost: 'AED ${order.totalPrice.toStringAsFixed(2)}',
     );
   }
 }
 
 class PreparingOrderScreen extends StatelessWidget {
-  const PreparingOrderScreen({Key? key}) : super(key: key);
+  final Order order;
+  const PreparingOrderScreen({Key? key, required this.order}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return _BaseTrackingScreen(
       title: 'PREPARING ORDER',
       currentStep: 1,
-      orderCost: 'AED 295.00',
+      orderCost: 'AED ${order.totalPrice.toStringAsFixed(2)}',
     );
   }
 }
 
 class OutForDeliveryScreen extends StatelessWidget {
-  const OutForDeliveryScreen({Key? key}) : super(key: key);
+  final Order order;
+  const OutForDeliveryScreen({Key? key, required this.order}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return _BaseTrackingScreen(
       title: 'OUT FOR DELIVERY',
       currentStep: 2,
-      orderCost: 'AED 850.00',
+      orderCost: 'AED ${order.totalPrice.toStringAsFixed(2)}',
     );
   }
 }
 
 class DeliveredOrderScreen extends StatelessWidget {
-  const DeliveredOrderScreen({Key? key}) : super(key: key);
+  final Order order;
+  const DeliveredOrderScreen({Key? key, required this.order}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return _BaseTrackingScreen(
       title: 'DELIVERED ORDER',
       currentStep: 3,
-      orderCost: 'AED 150.00',
+      orderCost: 'AED ${order.totalPrice.toStringAsFixed(2)}',
       showActionButtons: true,
     );
   }
@@ -189,7 +195,7 @@ class _BaseTrackingScreen extends StatelessWidget {
                           children: [
                             _buildInfoCol('Customer', 'Ahmad Hasan',
                                 crossAlignment: CrossAxisAlignment.start),
-                            _buildInfoCol('Order Cost', '\$120.00',
+                            _buildInfoCol('Order Cost', orderCost,
                                 crossAlignment: CrossAxisAlignment.end),
                           ],
                         ),

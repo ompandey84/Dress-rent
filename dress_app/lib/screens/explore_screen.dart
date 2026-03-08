@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dress_app/theme.dart';
+import 'package:dress_app/services/app_state.dart';
+import 'package:dress_app/screens/search_results_screen.dart';
+import 'package:dress_app/screens/filters_bottom_sheet.dart';
+import 'package:dress_app/screens/category_listing_screen.dart';
 
 class ExploreScreen extends StatelessWidget {
   const ExploreScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final appState = context.watch<AppState>();
     return Scaffold(
       backgroundColor: AppTheme.backgroundLight,
       body: SafeArea(
@@ -17,13 +23,13 @@ class ExploreScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(),
+              _buildHeader(appState.currentUser.name),
               const SizedBox(height: 24),
               _buildInfluencersSection(),
               const SizedBox(height: 24),
-              _buildSearchBar(),
+              _buildSearchBar(context),
               const SizedBox(height: 24),
-              _buildCategoryChips(),
+              _buildCategoryChips(context),
               const SizedBox(height: 24),
               _buildSectionTitle('Collection', 'Top Seller v'),
               const SizedBox(height: 16),
@@ -35,7 +41,7 @@ class ExploreScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(String userName) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -43,7 +49,7 @@ class ExploreScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'HEY ARAFAT! 👋',
+              'HEY ${userName.toUpperCase()}! 👋',
               style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.w900, color: AppTheme.textDark, letterSpacing: -0.5),
             ),
             const SizedBox(height: 4),
@@ -115,23 +121,37 @@ class ExploreScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(BuildContext context) {
     return Container(
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(100), border: Border.all(color: AppTheme.textLight.withOpacity(0.2))),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: TextField(
+        readOnly: true,
+        onTap: () {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => const SearchResultsScreen()));
+        },
         decoration: InputDecoration(
           hintText: 'Search items, sellers, or brands',
           hintStyle: GoogleFonts.inter(color: AppTheme.textLight, fontSize: 14),
           border: InputBorder.none,
           icon: const Icon(FluentIcons.search_24_regular, color: AppTheme.textLight),
-          suffixIcon: const Icon(FluentIcons.filter_24_regular, color: AppTheme.textDark), // Changed to filter icon based on design
+          suffixIcon: GestureDetector(
+            onTap: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => const FiltersBottomSheet(),
+              );
+            },
+            child: const Icon(FluentIcons.filter_24_regular, color: AppTheme.textDark),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildCategoryChips() {
+  Widget _buildCategoryChips(BuildContext context) {
     // In explorer design: "All", "Top Rated", "Fast Shipping", "Trending Shops"
     final List<String> categories = ['All', 'Top Rated', 'Fast Shipping', 'Trending Shops'];
     return SingleChildScrollView(
@@ -139,7 +159,11 @@ class ExploreScreen extends StatelessWidget {
       child: Row(
         children: categories.map((cat) {
           final isSelected = cat == 'All';
-          return Container(
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => CategoryListingScreen(categoryName: cat)));
+            },
+            child: Container(
             margin: const EdgeInsets.only(right: 12),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             decoration: BoxDecoration(
@@ -151,6 +175,7 @@ class ExploreScreen extends StatelessWidget {
               cat,
               style: GoogleFonts.inter(fontSize: 14, fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500, color: isSelected ? Colors.white : AppTheme.textDark),
             ),
+          ),
           );
         }).toList(),
       ),

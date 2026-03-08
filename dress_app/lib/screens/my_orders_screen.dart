@@ -7,6 +7,10 @@ import 'package:dress_app/screens/order_status/preparing_order_screen.dart';
 import 'package:dress_app/screens/order_status/out_for_delivery_screen.dart';
 import 'package:dress_app/screens/order_status/delivered_order_screen.dart';
 import 'package:dress_app/screens/order_status/refunded_order_screen.dart';
+import 'package:dress_app/models/order.dart';
+import 'package:dress_app/services/app_state.dart';
+import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class MyOrdersScreen extends StatelessWidget {
   const MyOrdersScreen({Key? key}) : super(key: key);
@@ -51,97 +55,111 @@ class MyOrdersScreen extends StatelessWidget {
         ),
         child: SafeArea(
           bottom: false,
-          child: ListView(
-            padding: const EdgeInsets.all(24),
-            children: [
-              _buildOrderItem(
-                context,
-                id: '#ORD-9821',
-                date: '18 Oct 2023',
-                items: 2,
-                price: 'AED 415.00',
-                status: 'Requested',
-                statusColor: Colors.blue.shade700,
-                bgColor: Colors.blue.shade50,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const RequestedOrderScreen()),
-                ),
-                imageIndex: 1,
-              ),
-              const SizedBox(height: 16),
-              _buildOrderItem(
-                context,
-                id: '#ORD-9820',
-                date: '17 Oct 2023',
-                items: 1,
-                price: 'AED 295.00',
-                status: 'Preparing Order',
-                statusColor: Colors.orange.shade800,
-                bgColor: Colors.orange.shade50,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const PreparingOrderScreen()),
-                ),
-                imageIndex: 2,
-              ),
-              const SizedBox(height: 16),
-              _buildOrderItem(
-                context,
-                id: '#ORD-9815',
-                date: '16 Oct 2023',
-                items: 3,
-                price: 'AED 850.00',
-                status: 'Out for Delivery',
-                statusColor: Colors.teal.shade700,
-                bgColor: Colors.teal.shade50,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const OutForDeliveryScreen()),
-                ),
-                imageIndex: 3,
-              ),
-              const SizedBox(height: 16),
-              _buildOrderItem(
-                context,
-                id: '#ORD-9799',
-                date: '10 Oct 2023',
-                items: 1,
-                price: 'AED 150.00',
-                status: 'Delivered',
-                statusColor: Colors.green.shade700,
-                bgColor: Colors.green.shade50,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const DeliveredOrderScreen()),
-                ),
-                imageIndex: 4,
-              ),
-              const SizedBox(height: 16),
-              _buildOrderItem(
-                context,
-                id: '#ORD-9750',
-                date: '5 Oct 2023',
-                items: 1,
-                price: 'AED 350.00',
-                status: 'Refunded',
-                statusColor: Colors.red.shade700,
-                bgColor: Colors.red.shade50,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const RefundedOrderScreen()),
-                ),
-                imageIndex: 5,
-              ),
-            ],
-          ),
+          child: _buildBody(context),
         ),
       ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context) {
+    final orders = context.watch<AppState>().orders;
+
+    if (orders.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(FluentIcons.box_24_regular, size: 60, color: AppTheme.textLight.withOpacity(0.5)),
+            const SizedBox(height: 16),
+            Text(
+              'No Orders Yet',
+              style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textDark),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Your rental history will appear here.',
+              style: GoogleFonts.inter(fontSize: 14, color: AppTheme.textLight),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryLime,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+              ),
+              child: Text(
+                'START RENTING',
+                style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: AppTheme.textDark),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView(
+      padding: const EdgeInsets.all(24),
+      children: [
+        ...orders.map((order) {
+          Color statusColor;
+                Color bgColor;
+                String statusLabel;
+                Widget targetScreen;
+
+                switch (order.status) {
+                  case OrderStatus.requested:
+                    statusColor = Colors.blue.shade700;
+                    bgColor = Colors.blue.shade50;
+                    statusLabel = 'Requested';
+                    targetScreen = RequestedOrderScreen(order: order);
+                    break;
+                  case OrderStatus.preparing:
+                    statusColor = Colors.orange.shade800;
+                    bgColor = Colors.orange.shade50;
+                    statusLabel = 'Preparing Order';
+                    targetScreen = PreparingOrderScreen(order: order);
+                    break;
+                  case OrderStatus.outForDelivery:
+                    statusColor = Colors.teal.shade700;
+                    bgColor = Colors.teal.shade50;
+                    statusLabel = 'Out for Delivery';
+                    targetScreen = OutForDeliveryScreen(order: order);
+                    break;
+                  case OrderStatus.delivered:
+                    statusColor = Colors.green.shade700;
+                    bgColor = Colors.green.shade50;
+                    statusLabel = 'Delivered';
+                    targetScreen = DeliveredOrderScreen(order: order);
+                    break;
+                  case OrderStatus.refunded:
+                    statusColor = Colors.red.shade700;
+                    bgColor = Colors.red.shade50;
+                    statusLabel = 'Refunded';
+                    targetScreen = RefundedOrderScreen(order: order);
+                    break;
+                }
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: _buildOrderItem(
+                    context,
+                    id: order.id,
+                    date: order.date,
+                    items: order.itemsCount,
+                    price: 'AED ${order.totalPrice.toStringAsFixed(2)}',
+                    status: statusLabel,
+                    statusColor: statusColor,
+                    bgColor: bgColor,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => targetScreen),
+                    ),
+                    imageUrl: order.imageUrl,
+                  ),
+                );
+              }).toList(),
+      ],
     );
   }
 
@@ -155,17 +173,8 @@ class MyOrdersScreen extends StatelessWidget {
     required Color statusColor,
     required Color bgColor,
     required VoidCallback onTap,
-    required int imageIndex,
+    required String imageUrl,
   }) {
-    // Generate different placeholder images
-    final images = [
-      'https://images.unsplash.com/photo-1516257984-b1b4d707412e?q=80&w=200&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1618932260643-eee4a2f652a6?q=80&w=200&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=200&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=200&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?q=80&w=200&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1529374255404-311a2a4f1fd9?q=80&w=200&auto=format&fit=crop',
-    ];
 
     return GestureDetector(
       onTap: onTap,
@@ -225,8 +234,8 @@ class MyOrdersScreen extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    images[imageIndex],
+                  child: CachedNetworkImage(
+                    imageUrl: imageUrl,
                     width: 65,
                     height: 65,
                     fit: BoxFit.cover,

@@ -7,14 +7,24 @@ class CustomTextField extends StatelessWidget {
   final String hintText;
   final bool isPassword;
   final Widget? suffixIcon;
+  final TextEditingController? controller;
+  final String? Function(String?)? validator;
+  final TextInputType keyboardType;
+  final int maxLines;
+  final ValueChanged<String>? onChanged;
 
   const CustomTextField({
-    Key? key,
+    super.key,
     required this.label,
     required this.hintText,
     this.isPassword = false,
     this.suffixIcon,
-  }) : super(key: key);
+    this.controller,
+    this.validator,
+    this.keyboardType = TextInputType.text,
+    this.maxLines = 1,
+    this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -36,8 +46,13 @@ class CustomTextField extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppTheme.textLight.withOpacity(0.2)),
           ),
-          child: TextField(
+          child: TextFormField(
+            controller: controller,
             obscureText: isPassword,
+            validator: validator,
+            keyboardType: keyboardType,
+            onChanged: onChanged,
+            maxLines: isPassword ? 1 : maxLines,
             decoration: InputDecoration(
               hintText: hintText,
               hintStyle: GoogleFonts.inter(

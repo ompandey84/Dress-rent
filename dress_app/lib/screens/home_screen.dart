@@ -3,15 +3,23 @@ import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
 import 'package:dress_app/theme.dart';
 import 'package:dress_app/screens/product_details_screen.dart';
-import 'package:dress_app/screens/ai_chat_screen.dart';
+import 'package:dress_app/services/app_state.dart';
+import 'package:dress_app/services/mock_data_service.dart';
+import 'package:dress_app/screens/notifications_screen.dart';
+import 'package:dress_app/screens/search_results_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final appState = context.watch<AppState>();
+    final user = appState.currentUser;
+    final products = MockDataService.mockProducts;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       body: Container(
@@ -36,16 +44,16 @@ class HomeScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildHeader(),
+                    _buildHeader(context, user.name, user.avatarUrl),
                     const SizedBox(height: 24),
                     _buildInfluencersSection(),
-                    _buildSearchBar(),
+                    _buildSearchBar(context),
                     const SizedBox(height: 24),
                     _buildSectionTitle('Discover Near You'),
                     const SizedBox(height: 16),
                     _buildCategoryChips(),
                     const SizedBox(height: 24),
-                    _buildProductGrid(context),
+                    _buildProductGrid(context, products),
                   ],
                 ),
               ),
@@ -56,7 +64,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context, String userName, String? avatarUrl) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -66,7 +74,7 @@ class HomeScreen extends StatelessWidget {
             Row(
               children: [
                 Text(
-                  'HEY ARAFAT!',
+                  'HEY ${userName.toUpperCase()}!',
                   style: GoogleFonts.inter(
                     fontSize: 26,
                     fontWeight: FontWeight.w900,
@@ -87,51 +95,56 @@ class HomeScreen extends StatelessWidget {
         ),
         Row(
           children: [
-            Stack(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    FluentIcons.alert_24_regular,
-                    color: AppTheme.textDark,
-                    size: 22,
-                  ),
-                ),
-                Positioned(
-                  right: 12,
-                  top: 12,
-                  child: Container(
-                    width: 8,
-                    height: 8,
+            GestureDetector(
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()));
+              },
+              child: Stack(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.red,
+                      color: Colors.white,
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 1.5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      FluentIcons.alert_24_regular,
+                      color: AppTheme.textDark,
+                      size: 22,
                     ),
                   ),
-                ),
-              ],
+                  Positioned(
+                    right: 12,
+                    top: 12,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 1.5),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(width: 12),
             Container(
               width: 46,
               height: 46,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 image: DecorationImage(
                   image: CachedNetworkImageProvider(
-                    'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=200&auto=format&fit=crop',
+                    avatarUrl != null && avatarUrl.isNotEmpty ? avatarUrl : 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=200&auto=format&fit=crop',
                   ),
                   fit: BoxFit.cover,
                 ),
@@ -278,7 +291,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -292,6 +305,14 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
       child: TextField(
+        onSubmitted: (value) {
+          if (value.trim().isNotEmpty) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => SearchResultsScreen(query: value)),
+            );
+          }
+        },
         decoration: InputDecoration(
           hintText: 'Search items, sellers, or brands',
           hintStyle: GoogleFonts.inter(color: AppTheme.textLight, fontSize: 14),
@@ -375,13 +396,12 @@ class HomeScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(
               horizontal: 14,
               vertical: 6,
-            ), // Reverted to a smaller, tighter padding
+            ), 
             decoration: BoxDecoration(
               color: isSelected
                   ? AppTheme.textDark
-                  : Colors.white, // White background for inactive chips
+                  : Colors.white, 
               borderRadius: BorderRadius.circular(100),
-              // Optional subtle shadow or border could go here if needed, but white looks closest
             ),
             child: Text(
               cat,
@@ -397,62 +417,47 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProductGrid(BuildContext context) {
-    // Implementing staggered true masonry equivalent layout with two columns
+  Widget _buildProductGrid(BuildContext context, List<dynamic> products) {
+    if (products.isEmpty) {
+      return const Center(child: Text("No products found"));
+    }
+
+    final leftColumn = <dynamic>[];
+    final rightColumn = <dynamic>[];
+    for (int i = 0; i < products.length; i++) {
+      if (i % 2 == 0) {
+        leftColumn.add(products[i]);
+      } else {
+        rightColumn.add(products[i]);
+      }
+    }
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
           child: Column(
-            children: [
-              _buildProductCard(
+            children: leftColumn.map((product) => Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: _buildProductCard(
                 context,
-                'Hoodie (Foreign)',
-                'Dubai Marina',
-                'AED295.00',
-                '4.5',
-                'https://images.unsplash.com/photo-1618932260643-eee4a2f652a6?q=80&w=500&auto=format&fit=crop',
+                product,
                 260,
-                isVerified: true,
               ),
-              const SizedBox(height: 24),
-              _buildProductCard(
-                context,
-                'Casual T-Shirt',
-                'London',
-                'AED150.00',
-                '4.8',
-                'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=500&auto=format&fit=crop',
-                200,
-              ),
-            ],
+            )).toList(),
           ),
         ),
         const SizedBox(width: 16),
         Expanded(
           child: Column(
-            children: [
-              _buildProductCard(
+            children: rightColumn.map((product) => Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: _buildProductCard(
                 context,
-                'Premium Hoodie',
-                'New York City',
-                'AED295.00',
-                '4.5',
-                'https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=500&auto=format&fit=crop',
+                product,
                 180,
-                isVerified: true,
               ),
-              const SizedBox(height: 24),
-              _buildProductCard(
-                context,
-                'Denim Jacket',
-                'Paris',
-                'AED350.00',
-                '4.9',
-                'https://images.unsplash.com/photo-1516257984-b1b4d707412e?q=80&w=500&auto=format&fit=crop',
-                280,
-              ),
-            ],
+            )).toList(),
           ),
         ),
       ],
@@ -461,18 +466,20 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildProductCard(
     BuildContext context,
-    String title,
-    String location,
-    String price,
-    String rating,
-    String imgUrl,
-    double height, {
-    bool isVerified = false,
-  }) {
+    dynamic product, // keeping dynamic or Product. Wait, we know it's a Product from AppState
+    double height,
+  ) {
+    String title = product.name;
+    String location = product.location;
+    String price = 'AED${product.price.toStringAsFixed(2)}';
+    String rating = product.rating.toString();
+    String imgUrl = product.images.isNotEmpty ? product.images.first : '';
+    bool isVerified = product.isVerifiedStore;
+
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => const ProductDetailsScreen()),
+          MaterialPageRoute(builder: (context) => ProductDetailsScreen(product: product)),
         );
       },
       child: Column(
@@ -488,6 +495,7 @@ class HomeScreen extends StatelessWidget {
                   height: height,
                   width: double.infinity,
                   fit: BoxFit.cover,
+                  errorWidget: (context, url, error) => Container(color: Colors.grey[200]),
                 ),
               ),
               Positioned(
@@ -500,8 +508,8 @@ class HomeScreen extends StatelessWidget {
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
-                    FluentIcons.heart_24_filled,
-                    color: Colors.red,
+                    FluentIcons.heart_24_regular,
+                    color: AppTheme.textLight,
                     size: 16,
                   ),
                 ),
@@ -534,12 +542,16 @@ class HomeScreen extends StatelessWidget {
           const SizedBox(height: 20),
           Row(
             children: [
-              Text(
-                location,
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  color: AppTheme.textLight,
-                  fontWeight: FontWeight.w500,
+              Expanded(
+                child: Text(
+                  location,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: AppTheme.textLight,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               if (isVerified) ...[

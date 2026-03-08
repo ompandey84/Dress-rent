@@ -51,7 +51,7 @@ class OrderSuccessScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'You have successfully made oder',
+                'You have successfully placed your order',
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   color: AppTheme.textLight,

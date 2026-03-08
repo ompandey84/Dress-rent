@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:dress_app/theme.dart';
 import 'package:dress_app/screens/onboarding_screen.dart';
+import 'package:dress_app/services/app_state.dart';
 
 void main() {
-  runApp(const DressApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => AppState(),
+      child: const DressApp(),
+    ),
+  );
 }
 
 class DressApp extends StatelessWidget {

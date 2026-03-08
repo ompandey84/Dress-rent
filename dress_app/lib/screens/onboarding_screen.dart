@@ -3,8 +3,34 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:dress_app/theme.dart';
 import 'package:dress_app/screens/login_screen.dart';
 
-class OnboardingScreen extends StatelessWidget {
+class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({Key? key}) : super(key: key);
+
+  @override
+  State<OnboardingScreen> createState() => _OnboardingScreenState();
+}
+
+class _OnboardingScreenState extends State<OnboardingScreen> {
+  final PageController _pageController = PageController();
+  int _currentIndex = 0;
+
+  final List<Map<String, String>> _onboardingData = [
+    {
+      'title': 'DISCOVER BEST\nRENTAL DRESSES\nNEARBY',
+      'subtitle': 'A smarter rental marketplace for the UAE & GCC —\nfast, trusted, and made for your lifestyle.',
+      'image': 'assets/images/gfvghj.png',
+    },
+    {
+      'title': 'WEAR PREMIUM\nBRANDS FOR\nLESS',
+      'subtitle': 'Access a curated wardrobe of high-end fashion\nwithout the commitment of buying.',
+      'image': 'assets/images/gfvghj.png', // Reusing placeholder, assuming only 1 asset exists
+    },
+    {
+      'title': 'RENT OUT YOUR\nWARDROBE &\nEARN',
+      'subtitle': 'Become a vendor and turn your unused\npremium dresses into a new income stream.',
+      'image': 'assets/images/gfvghj.png',
+    },
+  ];
 
   void _navigateToLogin(BuildContext context) {
     Navigator.of(context).pushReplacement(
@@ -13,49 +39,64 @@ class OnboardingScreen extends StatelessWidget {
   }
 
   @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
     return Scaffold(
-      backgroundColor: const Color(
-        0xFF5CA8B5,
-      ), // Teal background matching design
+      backgroundColor: const Color(0xFF5CA8B5),
       body: Stack(
         children: [
-          // The background image of the person
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: size.height * 0.6,
-            child: Image.asset(
-              'assets/images/gfvghj.png',
-              fit: BoxFit.cover,
-              alignment:
-                  Alignment.center, // Focus on center to keep person visible
-            ),
+          PageView.builder(
+            controller: _pageController,
+            onPageChanged: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            itemCount: _onboardingData.length,
+            itemBuilder: (context, index) {
+              return Stack(
+                children: [
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: size.height * 0.6,
+                    child: Image.asset(
+                      _onboardingData[index]['image']!,
+                      fit: BoxFit.cover,
+                      alignment: Alignment.center,
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: size.height * 0.6,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            const Color(0xFF5CA8B5),
+                            const Color(0xFF5CA8B5).withOpacity(0.0),
+                            Colors.black.withOpacity(0.4),
+                          ],
+                          stops: const [0.0, 0.3, 1.0],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
-          // Gradient overlay to blend image into the teal background
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: size.height * 0.6,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    const Color(0xFF5CA8B5),
-                    const Color(0xFF5CA8B5).withOpacity(0.0),
-                    Colors.black.withOpacity(0.4),
-                  ],
-                  stops: const [0.0, 0.3, 1.0],
-                ),
-              ),
-            ),
-          ),
-
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(
@@ -67,7 +108,8 @@ class OnboardingScreen extends StatelessWidget {
                 children: [
                   const SizedBox(height: 20),
                   Text(
-                    'DISCOVER BEST\nDEALS ITEMS\nNEARBY',
+                    _onboardingData[_currentIndex]['title']!,
+                    key: ValueKey<String>(_onboardingData[_currentIndex]['title']!),
                     style: GoogleFonts.inter(
                       fontSize: 40,
                       fontWeight: FontWeight.w900,
@@ -78,7 +120,8 @@ class OnboardingScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'A smarter marketplace for the UAE & GCC —\nfast, trusted, and made for your lifestyle.',
+                    _onboardingData[_currentIndex]['subtitle']!,
+                    key: ValueKey<String>(_onboardingData[_currentIndex]['subtitle']!),
                     style: GoogleFonts.inter(
                       fontSize: 15,
                       fontWeight: FontWeight.w400,
@@ -88,34 +131,19 @@ class OnboardingScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   Row(
-                    children: [
-                      Container(
-                        width: 24,
+                    children: List.generate(
+                      _onboardingData.length,
+                      (index) => AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        margin: const EdgeInsets.only(right: 4),
+                        width: _currentIndex == index ? 24 : 8,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: _currentIndex == index ? Colors.white : Colors.white.withOpacity(0.5),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
-                      const SizedBox(width: 4),
-                      Container(
-                        width: 8,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Container(
-                        width: 8,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                   Expanded(
                     child: Stack(
@@ -153,13 +181,20 @@ class OnboardingScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-
-                  // Get Started Button
                   SizedBox(
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
-                      onPressed: () => _navigateToLogin(context),
+                      onPressed: () {
+                        if (_currentIndex == _onboardingData.length - 1) {
+                          _navigateToLogin(context);
+                        } else {
+                          _pageController.nextPage(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        }
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.primaryLime,
                         shape: RoundedRectangleBorder(
@@ -168,7 +203,7 @@ class OnboardingScreen extends StatelessWidget {
                         elevation: 0,
                       ),
                       child: Text(
-                        'GET STARTED',
+                        _currentIndex == _onboardingData.length - 1 ? 'GET STARTED' : 'NEXT',
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           fontWeight: FontWeight.w800,

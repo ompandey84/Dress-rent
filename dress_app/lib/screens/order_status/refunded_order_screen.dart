@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:dress_app/theme.dart';
+import 'package:dress_app/models/order.dart';
 
 class RefundedOrderScreen extends StatelessWidget {
-  const RefundedOrderScreen({Key? key}) : super(key: key);
+  final Order order;
+  const RefundedOrderScreen({Key? key, required this.order}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -126,9 +128,9 @@ class RefundedOrderScreen extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    _buildSummaryRow('Order ID', '#ORD-9750'),
+                    _buildSummaryRow('Order ID', order.id),
                     const SizedBox(height: 16),
-                    _buildSummaryRow('Refund Date', '06 Oct 2023, 10:45 AM'),
+                    _buildSummaryRow('Refund Date', order.date),
                     const SizedBox(height: 16),
                     _buildSummaryRow('Refund Method', 'Visa ending in 4242'),
                     const Padding(
@@ -147,7 +149,7 @@ class RefundedOrderScreen extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'AED 350.00',
+                          'AED ${order.totalPrice.toStringAsFixed(2)}',
                           style: GoogleFonts.inter(
                             fontSize: 16,
                             fontWeight: FontWeight.w900,
@@ -186,7 +188,7 @@ class RefundedOrderScreen extends StatelessWidget {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: Image.network(
-                        'https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?q=80&w=200&auto=format&fit=crop',
+                        order.imageUrl,
                         width: 60,
                         height: 60,
                         fit: BoxFit.cover,

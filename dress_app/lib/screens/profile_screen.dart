@@ -5,6 +5,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dress_app/theme.dart';
 import 'package:dress_app/screens/rating_screen.dart';
 import 'package:dress_app/screens/my_orders_screen.dart';
+import 'package:dress_app/screens/edit_profile_screen.dart';
+import 'package:dress_app/screens/wishlist_screen.dart';
+import 'package:dress_app/screens/help_support_screen.dart';
+import 'package:dress_app/screens/vendor/vendor_signup_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -16,17 +20,10 @@ class ProfileScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppTheme.backgroundLight,
         elevation: 0,
-        leading: const SizedBox.shrink(), // No back button on main tab
-        actions: [
-          IconButton(
-            icon: const Icon(
-              FluentIcons.settings_24_regular,
-              color: AppTheme.textDark,
-            ),
-            onPressed: () {},
-          ),
-          const SizedBox(width: 8),
-        ],
+        leading: IconButton(
+          icon: const Icon(FluentIcons.chevron_left_24_regular, color: AppTheme.textDark),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -154,42 +151,69 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              _buildSettingsItem(
-                FluentIcons.person_24_regular,
-                'Personal Information',
-              ),
-              const SizedBox(height: 16),
-              _buildSettingsItem(FluentIcons.wallet_24_regular, 'Earning'),
-              const SizedBox(height: 16),
-              _buildSettingsItem(
-                FluentIcons.document_24_regular,
-                'Taxes Document',
-              ),
-              const SizedBox(height: 16),
-              _buildSettingsItem(
-                FluentIcons.list_24_regular,
-                'Terms and Conditions',
-              ),
-              const SizedBox(height: 16),
-              _buildSettingsItem(
-                FluentIcons.chat_help_24_regular,
-                'Complain Center',
-              ),
-              const SizedBox(height: 32),
-
-              // Demo Navigation to Rating Screen since it's the last one
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const RatingScreen(),
-                    ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const EditProfileScreen()),
                   );
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryLime,
+                child: _buildSettingsItem(
+                  FluentIcons.person_24_regular,
+                  'Personal Information',
                 ),
-                child: const Text('Simulate Delivery (Go to Rating)'),
+              ),
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const WishlistScreen()),
+                  );
+                },
+                child: _buildSettingsItem(
+                  FluentIcons.heart_24_regular,
+                  'My Wishlist',
+                ),
+              ),
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const RatingScreen()),
+                  );
+                },
+                child: _buildSettingsItem(
+                  FluentIcons.star_24_regular,
+                  'App Feedback',
+                ),
+              ),
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const HelpSupportScreen()),
+                  );
+                },
+                child: _buildSettingsItem(
+                  FluentIcons.chat_help_24_regular,
+                  'Help & Support',
+                ),
+              ),
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const VendorSignupScreen()),
+                  );
+                },
+                child: _buildSettingsItem(
+                  FluentIcons.building_shop_24_regular,
+                  'Become a Vendor',
+                ),
               ),
             ],
           ),

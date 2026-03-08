@@ -1,20 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dress_app/theme.dart';
+import 'package:dress_app/models/product.dart';
 import 'package:dress_app/screens/select_dates_screen.dart';
+import 'package:dress_app/screens/store_detail_screen.dart';
+import 'package:dress_app/screens/size_guide_bottom_sheet.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
-  const ProductDetailsScreen({super.key});
+  final Product product;
+  const ProductDetailsScreen({super.key, required this.product});
 
   @override
   State<ProductDetailsScreen> createState() => _ProductDetailsScreenState();
 }
 
 class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
-  String selectedSize = '28.4"';
-  Color selectedColor = Colors.black;
+  String? selectedSize;
+  String? selectedColor;
   bool isDescriptionExpanded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.product.sizes.isNotEmpty) selectedSize = widget.product.sizes.first;
+    if (widget.product.colors.isNotEmpty) selectedColor = widget.product.colors.first;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,12 +46,15 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                           children: [
                             ClipRRect(
                               borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
-                              child: Image.asset(
-                                'assets/images/product_image.jpg',
-                                height: 480,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                              ),
+                              child: widget.product.images.isNotEmpty
+                                  ? CachedNetworkImage(
+                                      imageUrl: widget.product.images.first,
+                                      height: 480,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                      errorWidget: (context, url, error) => Container(color: Colors.grey[200], height: 480),
+                                    )
+                                  : Container(color: Colors.grey[200], height: 480),
                             ),
                             // Floating Top Bar Overlay
                             Positioned(
@@ -228,7 +243,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                   ),
                                 ),
                                 ElevatedButton(
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    Navigator.push(context, MaterialPageRoute(builder: (_) => const StoreDetailScreen(storeName: 'ZARA Brand Store')));
+                                  },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppTheme.primaryLime,
                                     elevation: 0,
@@ -277,37 +294,47 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                           ),
                           const SizedBox(height: 24),
 
-                          // Size
-                          Text(
-                            'Size',
-                            style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textDark),
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              _buildSizePill('16.5"'),
-                              const SizedBox(width: 8),
-                              _buildSizePill('22.4"'),
-                              const SizedBox(width: 8),
-                              _buildSizePill('24.2"'),
-                              const SizedBox(width: 8),
-                              _buildSizePill('28.4"'),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
+                          if (widget.product.sizes.isNotEmpty) ...[
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Size',
+                                  style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textDark),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    showModalBottomSheet(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      backgroundColor: Colors.transparent,
+                                      builder: (context) => const SizeGuideBottomSheet(),
+                                    );
+                                  },
+                                  child: Text(
+                                    'Size Guide',
+                                    style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, decoration: TextDecoration.underline, color: AppTheme.textLight),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: widget.product.sizes.map((s) => _buildSizePill(s)).toList(),
+                            ),
+                            const SizedBox(height: 24),
+                          ],
                           
                           // Color Selector
-                          Row(
-                            children: [
-                              _buildColorDot(Colors.black),
-                              const SizedBox(width: 12),
-                              _buildColorDot(Colors.brown.shade800),
-                              const SizedBox(width: 12),
-                              _buildColorDot(Colors.grey),
-                              const SizedBox(width: 12),
-                              _buildColorDot(Colors.white, hasBorder: true),
-                            ],
-                          ),
+                          if (widget.product.colors.isNotEmpty) ...[
+                            Wrap(
+                              spacing: 12,
+                              runSpacing: 12,
+                              children: widget.product.colors.map((c) => _buildColorDot(c)).toList(),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -333,7 +360,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const SelectDatesScreen()),
+                      MaterialPageRoute(builder: (context) => SelectDatesScreen(product: widget.product)),
                     );
                   },
                   style: ElevatedButton.styleFrom(
@@ -382,12 +409,15 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     );
   }
 
-  Widget _buildColorDot(Color color, {bool hasBorder = false}) {
-    bool isSelected = selectedColor == color;
+  Widget _buildColorDot(String colorName) {
+    bool isSelected = selectedColor == colorName;
+    Color color = _getColorFromName(colorName);
+    bool hasBorder = color == Colors.white;
+    
     return GestureDetector(
       onTap: () {
         setState(() {
-          selectedColor = color;
+          selectedColor = colorName;
         });
       },
       child: Container(
@@ -403,5 +433,20 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             : null,
       ),
     );
+  }
+
+  Color _getColorFromName(String name) {
+    switch (name.toLowerCase()) {
+      case 'black': return Colors.black;
+      case 'grey': return Colors.grey;
+      case 'navy': return Colors.blue.shade900;
+      case 'red': return Colors.red;
+      case 'emerald': return Colors.green.shade800;
+      case 'blue denim': return Colors.blue.shade700;
+      case 'black denim': return Colors.black87;
+      case 'charcoal': return Colors.grey.shade800;
+      case 'white': return Colors.white;
+      default: return Colors.grey;
+    }
   }
 }

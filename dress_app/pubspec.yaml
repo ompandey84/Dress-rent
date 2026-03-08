@@ -37,6 +37,8 @@ dependencies:
   google_fonts: ^8.0.2
   fluentui_system_icons: ^1.1.273
   cached_network_image: ^3.4.1
+  provider: ^6.1.5+1
+  image_picker: ^1.2.1
 
 dev_dependencies:
   flutter_test:

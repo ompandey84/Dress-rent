@@ -95,7 +95,7 @@ class _RatingScreenState extends State<RatingScreen> {
                   child: TextField(
                     maxLines: null,
                     decoration: InputDecoration(
-                      hintText: 'Go to dashboard for tracking your bid status and get ready for the job.', // Matching the placeholder text in the image
+                      hintText: 'Tell us more about your rental experience...',
                       hintStyle: GoogleFonts.inter(fontSize: 14, color: AppTheme.textLight, height: 1.5),
                       border: InputBorder.none,
                     ),

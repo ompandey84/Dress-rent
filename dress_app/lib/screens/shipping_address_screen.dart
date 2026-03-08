@@ -4,9 +4,11 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dress_app/theme.dart';
 import 'package:dress_app/widgets/custom_text_field.dart';
+import 'package:dress_app/models/product.dart';
 
 class ShippingAddressScreen extends StatelessWidget {
-  const ShippingAddressScreen({Key? key}) : super(key: key);
+  final Product product;
+  const ShippingAddressScreen({Key? key, required this.product}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -50,11 +52,15 @@ class ShippingAddressScreen extends StatelessWidget {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(12),
-                          child: CachedNetworkImage(
-                            imageUrl: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=200&auto=format&fit=crop',
+                          child: product.images.isNotEmpty ? CachedNetworkImage(
+                            imageUrl: product.images.first,
                             width: 80,
                             height: 80,
                             fit: BoxFit.cover,
+                          ) : Container(
+                            width: 80,
+                            height: 80,
+                            color: Colors.grey.shade200,
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -62,31 +68,32 @@ class ShippingAddressScreen extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Fashion', style: GoogleFonts.inter(fontSize: 10, color: AppTheme.textLight)),
+                              Text(product.category, style: GoogleFonts.inter(fontSize: 10, color: AppTheme.textLight)),
                               const SizedBox(height: 4),
-                              Text('Classic Streetwear', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: AppTheme.textDark)),
+                              Text(product.name, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: AppTheme.textDark)),
                               const SizedBox(height: 4),
                               Row(
                                 children: [
                                   const Icon(Icons.star, size: 14, color: AppTheme.textDark),
                                   const SizedBox(width: 4),
-                                  Text('4.9', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
-                                  Text(' | 50 reviews', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textLight)),
+                                  Text(product.rating.toString(), style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
+                                  Text(' | ${product.reviewsCount} reviews', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textLight)),
                                 ],
                               ),
                               const SizedBox(height: 4),
                               Row(
                                 children: [
-                                  Text('AED 295.00', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: AppTheme.primaryLime)),
+                                  Text('AED ${product.price.toStringAsFixed(2)}', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: AppTheme.primaryLime)),
                                   const SizedBox(width: 8),
-                                  Text(
-                                    'AED 350.00', 
-                                    style: GoogleFonts.inter(
-                                      fontSize: 12, 
-                                      color: AppTheme.textLight, 
-                                      decoration: TextDecoration.lineThrough
+                                  if (product.originalPrice > 0.0) 
+                                    Text(
+                                      'AED ${product.originalPrice.toStringAsFixed(2)}', 
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12, 
+                                        color: AppTheme.textLight, 
+                                        decoration: TextDecoration.lineThrough
+                                      ),
                                     ),
-                                  ),
                                 ],
                               ),
                             ],

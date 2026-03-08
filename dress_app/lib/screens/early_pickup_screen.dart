@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import 'package:dress_app/theme.dart';
 
 class EarlyPickupScreen extends StatefulWidget {
@@ -12,6 +14,17 @@ class EarlyPickupScreen extends StatefulWidget {
 
 class _EarlyPickupScreenState extends State<EarlyPickupScreen> {
   String? selectedReason;
+  final ImagePicker _picker = ImagePicker();
+  List<XFile> _images = [];
+
+  Future<void> _pickImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        _images.add(image);
+      });
+    }
+  }
 
   final List<String> reasons = [
     'I am done using the item early',
@@ -89,12 +102,23 @@ class _EarlyPickupScreenState extends State<EarlyPickupScreen> {
                       fontSize: 13, color: AppTheme.textLight),
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  children: [
-                    _buildAddPhotoButton(),
-                    const SizedBox(width: 12),
-                    _buildImagePlaceholder(),
-                  ],
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      GestureDetector(
+                        onTap: _pickImage,
+                        child: _buildAddPhotoButton(),
+                      ),
+                      const SizedBox(width: 12),
+                      ..._images.asMap().entries.map((entry) {
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 12),
+                          child: _buildImageTile(entry.value, entry.key),
+                        );
+                      }).toList(),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -248,13 +272,13 @@ class _EarlyPickupScreenState extends State<EarlyPickupScreen> {
     );
   }
 
-  Widget _buildImagePlaceholder() {
+  Widget _buildImageTile(XFile file, int index) {
     return Stack(
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(16),
-          child: Image.network(
-            'https://images.unsplash.com/photo-1542272604-787c3835535d?q=80&w=200&auto=format&fit=crop',
+          child: Image.file(
+            File(file.path),
             width: 80,
             height: 80,
             fit: BoxFit.cover,
@@ -263,14 +287,20 @@ class _EarlyPickupScreenState extends State<EarlyPickupScreen> {
         Positioned(
           top: 6,
           right: 6,
-          child: Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.6),
-              shape: BoxShape.circle,
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                _images.removeAt(index);
+              });
+            },
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.6),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(FluentIcons.dismiss_12_regular, color: Colors.white, size: 12),
             ),
-            child: const Icon(FluentIcons.dismiss_12_regular,
-                color: Colors.white, size: 12),
           ),
         ),
       ],

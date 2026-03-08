@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:dress_app/theme.dart';
-import 'package:dress_app/screens/order_success_screen.dart';
+import 'package:dress_app/models/product.dart';
 import 'package:dress_app/screens/shipping_address_screen.dart';
+import 'package:dress_app/screens/add_card_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
-  const CheckoutScreen({super.key});
+  final Product product;
+  const CheckoutScreen({super.key, required this.product});
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -94,11 +96,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: Image.asset(
-                          'assets/images/product_image.jpg',
+                        child: widget.product.images.isNotEmpty ? Image.network(
+                          widget.product.images.first,
                           width: 80,
                           height: 100,
                           fit: BoxFit.cover,
+                        ) : Container(
+                          width: 80,
+                          height: 100,
+                          color: Colors.grey.shade200,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -107,12 +113,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'PREMIUM HOODIE',
+                              widget.product.name.toUpperCase(),
                               style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textDark),
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Size: 28.4" • Black',
+                              'Size: ${widget.product.sizes.isNotEmpty ? widget.product.sizes.first : 'N/A'} • ${widget.product.colors.isNotEmpty ? widget.product.colors.first : 'N/A'}',
                               style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textLight),
                             ),
                             const SizedBox(height: 12),
@@ -142,7 +148,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     Text('SHIPPING TO', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textLight, letterSpacing: 1.0)),
                     GestureDetector(
                       onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const ShippingAddressScreen()));
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => ShippingAddressScreen(product: widget.product)));
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -255,7 +261,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                   child: Column(
                     children: [
-                      _buildSummaryRow('Rental Price (3 days)', 'AED 295.00'),
+                      _buildSummaryRow('Rental Price (3 days)', 'AED ${widget.product.price.toStringAsFixed(2)}'),
                       const SizedBox(height: 12),
                       _buildSummaryRow('Delivery Fee (2.5 km)', 'AED 20.00'),
                       const SizedBox(height: 12),
@@ -270,7 +276,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text('Total', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textDark)),
-                          Text('AED 415.00', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w900, color: const Color(0xFF0C6B86))),
+                          Text('AED ${(widget.product.price + 20 + 100).toStringAsFixed(2)}', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w900, color: const Color(0xFF0C6B86))),
                         ],
                       ),
                     ],
@@ -296,10 +302,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ),
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.pushAndRemoveUntil(
+                  Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const OrderSuccessScreen()),
-                    (route) => route.isFirst,
+                    MaterialPageRoute(builder: (context) => const AddCardScreen()),
                   );
                 },
                 style: ElevatedButton.styleFrom(

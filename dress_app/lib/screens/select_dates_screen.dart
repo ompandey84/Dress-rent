@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:dress_app/theme.dart';
+import 'package:dress_app/models/product.dart';
 import 'package:dress_app/screens/checkout_screen.dart';
 
 class SelectDatesScreen extends StatefulWidget {
-  const SelectDatesScreen({super.key});
+  final Product product;
+  const SelectDatesScreen({super.key, required this.product});
 
   @override
   State<SelectDatesScreen> createState() => _SelectDatesScreenState();
@@ -184,7 +186,7 @@ class _SelectDatesScreenState extends State<SelectDatesScreen> {
                       children: [
                         Text('Est. Rental Price', style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textLight)),
                         const SizedBox(height: 4),
-                        Text('AED 295.00', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, color: AppTheme.textDark)),
+                        Text('AED ${widget.product.price.toStringAsFixed(2)}', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w900, color: AppTheme.textDark)),
                       ],
                     ),
                   ],
@@ -211,7 +213,7 @@ class _SelectDatesScreenState extends State<SelectDatesScreen> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const CheckoutScreen()),
+                    MaterialPageRoute(builder: (context) => CheckoutScreen(product: widget.product)),
                   );
                 },
                 style: ElevatedButton.styleFrom(
