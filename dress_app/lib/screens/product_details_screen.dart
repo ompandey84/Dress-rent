@@ -317,7 +317,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             
             // Floating Bottom Actions
             Positioned(
-              bottom: 5, // 5px directly above padding
+              bottom: 15, // 15px padding
               left: 24,
               right: 24,
               child: Container(

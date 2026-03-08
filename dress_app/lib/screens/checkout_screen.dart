@@ -15,9 +15,22 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   // Mock Data
   String rentalDates = 'Mar 15 - Mar 18, 2026';
-  String address = '123 Marina Blvd, Dubai Marina, UAE';
   bool isPromoApplied = false;
   Duration timeRemaining = const Duration(minutes: 10, seconds: 0);
+  
+  int _selectedAddressIndex = 0;
+  final List<Map<String, dynamic>> _addresses = [
+    {
+      'title': 'Home',
+      'address': '123 Marina Blvd, Dubai Marina, UAE',
+      'icon': FluentIcons.home_24_regular,
+    },
+    {
+      'title': 'Office',
+      'address': '456 Business Bay, Dubai, UAE',
+      'icon': FluentIcons.building_24_regular,
+    },
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -127,50 +140,74 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text('SHIPPING TO', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textLight, letterSpacing: 1.0)),
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      onPressed: () {
+                    GestureDetector(
+                      onTap: () {
                         Navigator.push(context, MaterialPageRoute(builder: (context) => const ShippingAddressScreen()));
                       },
-                      child: Text('+ Add New Address', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.primaryLime)),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryLime.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: AppTheme.primaryLime),
+                        ),
+                        child: Text('+ Add New Address', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.primaryLime)),
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey.shade200),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
+                Column(
+                  children: List.generate(_addresses.length, (index) {
+                    bool isSelected = _selectedAddressIndex == index;
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedAddressIndex = index;
+                        });
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF6F8FA),
-                          borderRadius: BorderRadius.circular(12),
+                          color: isSelected ? AppTheme.primaryLime.withValues(alpha: 0.05) : Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: isSelected ? AppTheme.primaryLime : Colors.grey.shade200, width: isSelected ? 2 : 1),
                         ),
-                        child: const Icon(FluentIcons.location_24_regular, color: AppTheme.textDark),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Row(
                           children: [
-                            Text('Home', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.textDark)),
-                            const SizedBox(height: 4),
-                            Text(address, style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textLight)),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: isSelected ? Colors.white : const Color(0xFFF6F8FA),
+                                borderRadius: BorderRadius.circular(12),
+                                border: isSelected ? Border.all(color: AppTheme.primaryLime.withValues(alpha: 0.3)) : null,
+                              ),
+                              child: Icon(_addresses[index]['icon'] as IconData, color: isSelected ? AppTheme.primaryLime : AppTheme.textDark),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(_addresses[index]['title'] as String, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.textDark)),
+                                      if (isSelected) 
+                                        const Icon(FluentIcons.checkmark_circle_24_filled, color: AppTheme.primaryLime, size: 20),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(_addresses[index]['address'] as String, style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textLight)),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
+                    );
+                  }),
                 ),
                 const SizedBox(height: 24),
 
@@ -245,7 +282,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           
           // Floating Bottom Continue Button
           Positioned(
-            bottom: 5, // 5px directly above padding
+            bottom: 15, // 15px padding
             left: 24,
             right: 24,
             child: Container(

@@ -141,7 +141,7 @@ class ShippingAddressScreen extends StatelessWidget {
             
             // Bottom Action
             Padding(
-              padding: const EdgeInsets.only(left: 24, right: 24, top: 16, bottom: 5),
+              padding: const EdgeInsets.only(left: 24, right: 24, top: 16, bottom: 15),
               child: SizedBox(
                 width: double.infinity,
                 height: 56,

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dress_app/theme.dart';
 import 'package:dress_app/screens/login_screen.dart';
 
