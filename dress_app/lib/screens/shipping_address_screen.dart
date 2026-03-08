@@ -4,7 +4,6 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dress_app/theme.dart';
 import 'package:dress_app/widgets/custom_text_field.dart';
-import 'package:dress_app/screens/order_success_screen.dart';
 
 class ShippingAddressScreen extends StatelessWidget {
   const ShippingAddressScreen({Key? key}) : super(key: key);
@@ -100,6 +99,28 @@ class ShippingAddressScreen extends StatelessWidget {
                     Text('Delivery Address', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textDark)),
                     const SizedBox(height: 16),
                     
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryLime.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppTheme.primaryLime.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(FluentIcons.my_location_24_regular, color: AppTheme.primaryLime, size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Detect current location',
+                            style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.primaryLime),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    
                     const CustomTextField(label: 'Full Name', hintText: 'Enter your full name'),
                     const SizedBox(height: 16),
                     const CustomTextField(label: 'Phone Number', hintText: 'Enter phone number'),
@@ -120,15 +141,13 @@ class ShippingAddressScreen extends StatelessWidget {
             
             // Bottom Action
             Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.only(left: 24, right: 24, top: 16, bottom: 5),
               child: SizedBox(
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => const OrderSuccessScreen()),
-                    );
+                    Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryLime,
@@ -136,7 +155,7 @@ class ShippingAddressScreen extends StatelessWidget {
                     elevation: 0,
                   ),
                   child: Text(
-                    'SAVE & CONTINUE',
+                    'SAVE ADDRESS',
                     style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textDark),
                   ),
                 ),
