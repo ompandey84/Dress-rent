@@ -128,7 +128,7 @@ class VendorDashboardScreen extends StatelessWidget {
           children: [
             Expanded(child: _buildStatCard('Pending\nReturns', '5', FluentIcons.arrow_undo_24_regular, const Color(0xFFE53935))),
             const SizedBox(width: 12),
-            Expanded(child: _buildStatCard('Total\nEarnings', '₹45.2K', FluentIcons.money_24_regular, Colors.green)),
+            Expanded(child: _buildStatCard('Total\nEarnings', 'AED 45.2K', FluentIcons.money_24_regular, Colors.green)),
           ],
         ),
       ],
@@ -426,7 +426,7 @@ class VendorDashboardScreen extends StatelessWidget {
         const SizedBox(height: 10),
         _buildNotificationCard('Return Reminder', 'Denim Jacket return due tomorrow', '1h ago', FluentIcons.arrow_undo_24_regular, Colors.orange),
         const SizedBox(height: 10),
-        _buildNotificationCard('Payment Processed', '₹2,450 credited to your account', '3h ago', FluentIcons.money_24_regular, const Color(0xFF2E8A99)),
+        _buildNotificationCard('Payment Processed', 'AED 2,450 credited to your account', '3h ago', FluentIcons.money_24_regular, const Color(0xFF2E8A99)),
       ],
     );
   }

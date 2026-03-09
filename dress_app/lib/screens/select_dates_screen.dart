@@ -4,10 +4,13 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:dress_app/theme.dart';
 import 'package:dress_app/models/product.dart';
 import 'package:dress_app/screens/checkout_screen.dart';
+import 'package:dress_app/models/cart_item.dart';
 
 class SelectDatesScreen extends StatefulWidget {
   final Product product;
-  const SelectDatesScreen({super.key, required this.product});
+  final String? selectedSize;
+  final String? selectedColor;
+  const SelectDatesScreen({super.key, required this.product, this.selectedSize, this.selectedColor});
 
   @override
   State<SelectDatesScreen> createState() => _SelectDatesScreenState();
@@ -16,14 +19,50 @@ class SelectDatesScreen extends StatefulWidget {
 class _SelectDatesScreenState extends State<SelectDatesScreen> {
   int? startDay = 15;
   int? endDay = 18;
+  int _monthOffset = 0;
 
   @override
   void initState() {
     super.initState();
+    final today = DateTime.now();
+    startDay = today.day + 2; 
+    endDay = today.day + 5;
+    if (startDay! > 30) startDay = 30;
+    if (endDay! > 30) endDay = 30;
+  }
+
+  String get _monthName {
+    final current = DateTime.now();
+    int targetMonth = current.month + _monthOffset;
+    int targetYear = current.year;
+    while (targetMonth > 12) {
+      targetMonth -= 12;
+      targetYear += 1;
+    }
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    return '${months[targetMonth - 1]} $targetYear';
+  }
+
+  void _nextMonth() {
+    setState(() {
+      _monthOffset++;
+      startDay = null;
+      endDay = null;
+    });
+  }
+
+  void _prevMonth() {
+    if (_monthOffset > 0) {
+      setState(() {
+        _monthOffset--;
+        startDay = null;
+        endDay = null;
+      });
+    }
   }
 
   void _onDaySelected(int day) {
-    if (day < 10) return; // past dates
+    if (_monthOffset == 0 && day < DateTime.now().day) return; // past dates
 
     setState(() {
       if (startDay == null || (startDay != null && endDay != null)) {
@@ -90,12 +129,18 @@ class _SelectDatesScreenState extends State<SelectDatesScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Icon(FluentIcons.chevron_left_24_regular, size: 20, color: AppTheme.textDark),
+                          GestureDetector(
+                            onTap: _prevMonth,
+                            child: Icon(FluentIcons.chevron_left_24_regular, size: 20, color: _monthOffset > 0 ? AppTheme.textDark : Colors.grey.shade300),
+                          ),
                           Text(
-                            'March 2026',
+                            _monthName,
                             style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textDark),
                           ),
-                          const Icon(FluentIcons.chevron_right_24_regular, size: 20, color: AppTheme.textDark),
+                          GestureDetector(
+                            onTap: _nextMonth,
+                            child: const Icon(FluentIcons.chevron_right_24_regular, size: 20, color: AppTheme.textDark),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 24),
@@ -125,7 +170,7 @@ class _SelectDatesScreenState extends State<SelectDatesScreen> {
                           bool isStart = startDay != null && day == startDay;
                           bool isEnd = endDay != null && day == endDay;
                           bool isInBetween = startDay != null && endDay != null && day > startDay! && day < endDay!;
-                          bool isPast = day < 10;
+                          bool isPast = _monthOffset == 0 && day < DateTime.now().day;
                           
                           Color bgColor = Colors.transparent;
                           Color textColor = AppTheme.textDark;
@@ -243,7 +288,18 @@ class _SelectDatesScreenState extends State<SelectDatesScreen> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => CheckoutScreen(product: widget.product)),
+                    MaterialPageRoute(builder: (context) => CheckoutScreen(
+                      cartItems: [
+                        CartItem(
+                          id: DateTime.now().millisecondsSinceEpoch.toString(),
+                          product: widget.product,
+                          selectedSize: widget.selectedSize ?? (widget.product.sizes.isNotEmpty ? widget.product.sizes.first : 'M'),
+                          selectedColor: widget.selectedColor ?? (widget.product.colors.isNotEmpty ? widget.product.colors.first : 'Default'),
+                          rentalDates: (startDay != null && endDay != null) ? '${_monthName.split(' ')[0].substring(0, 3)} $startDay - ${_monthName.split(' ')[0].substring(0, 3)} $endDay, ${_monthName.split(' ')[1]}' : '${_monthName.split(' ')[0].substring(0, 3)} $startDay, ${_monthName.split(' ')[1]}',
+                          quantity: 1,
+                        ),
+                      ],
+                    )),
                   );
                 },
                 style: ElevatedButton.styleFrom(

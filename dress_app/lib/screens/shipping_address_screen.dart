@@ -21,6 +21,8 @@ class _ShippingAddressScreenState extends State<ShippingAddressScreen> {
   final _cityController = TextEditingController();
   final _zipController = TextEditingController();
 
+  bool _isDetectingLocation = false;
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -29,6 +31,62 @@ class _ShippingAddressScreenState extends State<ShippingAddressScreen> {
     _cityController.dispose();
     _zipController.dispose();
     super.dispose();
+  }
+
+  void _detectLocation() async {
+    setState(() => _isDetectingLocation = true);
+    
+    // Mock network/GPS delay
+    await Future.delayed(const Duration(seconds: 2));
+    
+    if (mounted) {
+      setState(() {
+        _addressController.text = '123 Sheikh Zayed Road, Downtown';
+        _cityController.text = 'Dubai';
+        _zipController.text = '00000';
+        _isDetectingLocation = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Location detected: Dubai, UAE')),
+      );
+    }
+  }
+
+  void _confirmDelete() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(
+          'Discard Address?',
+          style: GoogleFonts.inter(fontWeight: FontWeight.w900, color: AppTheme.textDark),
+        ),
+        content: Text(
+          'Are you sure you want to clear all address fields?',
+          style: GoogleFonts.inter(color: AppTheme.textLight),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('CANCEL', style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: AppTheme.textLight)),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _nameController.clear();
+                _phoneController.clear();
+                _addressController.clear();
+                _cityController.clear();
+                _zipController.clear();
+              });
+              Navigator.pop(context);
+            },
+            child: Text('DISCARD', style: GoogleFonts.inter(fontWeight: FontWeight.w900, color: Colors.red)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -48,14 +106,17 @@ class _ShippingAddressScreenState extends State<ShippingAddressScreen> {
         ),
         centerTitle: true,
         actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            padding: const EdgeInsets.all(8),
-             decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: AppTheme.textLight.withOpacity(0.2)),
+          GestureDetector(
+            onTap: _confirmDelete,
+            child: Container(
+              margin: const EdgeInsets.only(right: 16),
+              padding: const EdgeInsets.all(8),
+               decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: AppTheme.textLight.withOpacity(0.2)),
+              ),
+              child: const Icon(FluentIcons.delete_24_regular, size: 20, color: AppTheme.textDark),
             ),
-            child: const Icon(FluentIcons.delete_24_regular, size: 20, color: AppTheme.textDark),
           ),
         ],
       ),
@@ -128,9 +189,7 @@ class _ShippingAddressScreenState extends State<ShippingAddressScreen> {
                     const SizedBox(height: 16),
                     
                     GestureDetector(
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Location detection coming soon!')));
-                      },
+                      onTap: _isDetectingLocation ? null : _detectLocation,
                       child: Container(
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -142,10 +201,12 @@ class _ShippingAddressScreenState extends State<ShippingAddressScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(FluentIcons.my_location_24_regular, color: AppTheme.primaryLime, size: 20),
+                            _isDetectingLocation 
+                              ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primaryLime))
+                              : const Icon(FluentIcons.my_location_24_regular, color: AppTheme.primaryLime, size: 20),
                             const SizedBox(width: 8),
                             Text(
-                              'Detect current location',
+                              _isDetectingLocation ? 'Detecting Location...' : 'Detect current location',
                               style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.primaryLime),
                             ),
                           ],

@@ -3,8 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dress_app/theme.dart';
-import 'package:dress_app/screens/product_details_screen.dart';
 import 'package:dress_app/services/mock_data_service.dart';
+import 'package:dress_app/widgets/product_card.dart';
 
 class StoreDetailScreen extends StatelessWidget {
   final String storeName;
@@ -143,11 +143,11 @@ class StoreDetailScreen extends StatelessWidget {
                 crossAxisCount: 2,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 24,
-                childAspectRatio: 0.55, // matches home screen ratio roughly
+                childAspectRatio: 0.5, // matches home screen ratio roughly
               ),
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
-                  return _buildProductCard(context, storeProducts[index]);
+                  return ProductCard(product: storeProducts[index], imageHeight: 180);
                 },
                 childCount: storeProducts.length,
               ),
@@ -160,46 +160,4 @@ class StoreDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProductCard(BuildContext context, dynamic product) {
-    String title = product.name;
-    String price = 'AED ${product.price.toStringAsFixed(2)}/day';
-    String imgUrl = product.images.isNotEmpty ? product.images.first : '';
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => ProductDetailsScreen(product: product)),
-        );
-      },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: CachedNetworkImage(
-                imageUrl: imgUrl,
-                width: double.infinity,
-                height: double.infinity,
-                fit: BoxFit.cover,
-                errorWidget: (context, url, error) => Container(color: Colors.grey[200]),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w800, color: AppTheme.textDark),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            price,
-            style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.primaryLime),
-          ),
-        ],
-      ),
-    );
-  }
 }

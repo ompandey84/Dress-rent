@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:dress_app/theme.dart';
+import 'package:dress_app/services/mock_data_service.dart';
+import 'package:dress_app/models/notification_item.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -11,44 +13,35 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-  List<Map<String, dynamic>> _notifications = [
-    {
-      'id': '1',
-      'icon': FluentIcons.box_24_regular,
-      'title': 'Order Delivered!',
-      'message': 'Your dress "Red Evening Gown" has been delivered successfully. Enjoy your event!',
-      'time': '2h ago',
-      'isUnread': true,
-      'group': 'TODAY',
-    },
-    {
-      'id': '2',
-      'icon': FluentIcons.money_24_regular,
-      'title': 'Deposit Refund Initiated',
-      'message': 'Your safety deposit of AED 100 has been processed for refund.',
-      'time': '5h ago',
-      'isUnread': true,
-      'group': 'TODAY',
-    },
-    {
-      'id': '3',
-      'icon': FluentIcons.star_24_regular,
-      'title': 'Rate your rental',
-      'message': 'How was your experience with "Blue Wrap Dress"? Leave a review.',
-      'time': '2 days ago',
-      'isUnread': false,
-      'group': 'THIS WEEK',
-    },
-    {
-      'id': '4',
-      'icon': FluentIcons.savings_24_regular,
-      'title': 'Weekend Offer!',
-      'message': 'Get 20% off on your next rental. Use code WKND20.',
-      'time': '4 days ago',
-      'isUnread': false,
-      'group': 'THIS WEEK',
-    },
-  ];
+  late List<Map<String, dynamic>> _notifications;
+
+  @override
+  void initState() {
+    super.initState();
+    _notifications = MockDataService.mockNotifications.map((n) {
+      IconData icon;
+      switch (n.type) {
+        case NotificationType.order:
+          icon = FluentIcons.box_24_regular;
+          break;
+        case NotificationType.promo:
+          icon = FluentIcons.savings_24_regular;
+          break;
+        case NotificationType.general:
+          icon = FluentIcons.info_24_regular;
+          break;
+      }
+      return {
+        'id': n.id,
+        'icon': icon,
+        'title': n.title,
+        'message': n.description,
+        'time': n.timeText,
+        'isUnread': !n.isRead,
+        'group': 'RECENT',
+      };
+    }).toList();
+  }
 
   void _markAllAsRead() {
     setState(() {

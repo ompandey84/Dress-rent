@@ -8,8 +8,9 @@ import 'package:provider/provider.dart';
 import 'package:dress_app/services/app_state.dart';
 import 'package:dress_app/screens/select_dates_screen.dart';
 import 'package:dress_app/screens/store_detail_screen.dart';
+import 'package:dress_app/models/cart_item.dart';
 import 'package:dress_app/screens/size_guide_bottom_sheet.dart';
-import 'package:dress_app/screens/message_list_screen.dart';
+import 'package:dress_app/screens/help_support_screen.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
   final Product product;
@@ -91,6 +92,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                   ),
                                   Row(
                                     children: [
+                                      // Heart Button
                                       GestureDetector(
                                         onTap: () {
                                           context.read<AppState>().toggleFavorite(widget.product.id);
@@ -108,9 +110,66 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                           ),
                                         ),
                                       ),
+                                      // Share Button
                                       GestureDetector(
                                         onTap: () {
-                                          Navigator.push(context, MaterialPageRoute(builder: (_) => SelectDatesScreen(product: widget.product)));
+                                          showModalBottomSheet(
+                                            context: context,
+                                            backgroundColor: Colors.transparent,
+                                            builder: (context) => Container(
+                                              decoration: const BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                                              ),
+                                              padding: const EdgeInsets.all(24),
+                                              child: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Text(
+                                                    'Share Product',
+                                                    style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textDark),
+                                                  ),
+                                                  const SizedBox(height: 24),
+                                                  Row(
+                                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                    children: [
+                                                      _buildShareOption(Icons.message, 'Message', Colors.green),
+                                                      _buildShareOption(Icons.copy, 'Copy Link', Colors.blue),
+                                                      _buildShareOption(Icons.more_horiz, 'More', Colors.grey),
+                                                    ],
+                                                  ),
+                                                  const SizedBox(height: 24),
+                                                ],
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.all(10),
+                                          margin: const EdgeInsets.only(right: 8),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withValues(alpha: 0.3),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(
+                                            FluentIcons.share_24_regular,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                      // Cart Button
+                                      GestureDetector(
+                                        onTap: () {
+                                          context.read<AppState>().addToCart(
+                                            CartItem(
+                                              id: DateTime.now().millisecondsSinceEpoch.toString(),
+                                              product: widget.product,
+                                              selectedSize: selectedSize ?? 'M',
+                                              selectedColor: selectedColor ?? 'Default',
+                                              rentalDates: '3 Days',
+                                            ),
+                                          );
+                                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Added to Bag')));
                                         },
                                         child: Container(
                                           padding: const EdgeInsets.all(10),
@@ -212,7 +271,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                               ),
                               GestureDetector(
                                 onTap: () {
-                                  Navigator.push(context, MaterialPageRoute(builder: (_) => const MessageListScreen()));
+                                  Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpSupportScreen()));
                                 },
                                 child: Container(
                                   padding: const EdgeInsets.all(12),
@@ -237,14 +296,16 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                             child: Row(
                               children: [
                                 Container(
-                                  width: 42,
                                   height: 42,
                                   decoration: const BoxDecoration(
                                     shape: BoxShape.circle,
                                     color: Colors.black,
                                   ),
                                   child: Center(
-                                    child: Text('ZARA', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 11)),
+                                    child: Text(
+                                      widget.product.storeName.isNotEmpty ? widget.product.storeName[0].toUpperCase() : 'S',
+                                      style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18),
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
@@ -255,7 +316,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                       Row(
                                         children: [
                                           Text(
-                                            'ZARA Brand Store',
+                                            widget.product.storeName,
                                             style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: AppTheme.textDark),
                                           ),
                                           const SizedBox(width: 6),
@@ -268,7 +329,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                           const Icon(FluentIcons.location_24_regular, size: 14, color: AppTheme.textDark),
                                           const SizedBox(width: 4),
                                           Text(
-                                            'Dubai Marina',
+                                            widget.product.location,
                                             style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textDark),
                                           ),
                                         ],
@@ -394,7 +455,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => SelectDatesScreen(product: widget.product)),
+                      MaterialPageRoute(builder: (context) => SelectDatesScreen(
+                        product: widget.product,
+                        selectedSize: selectedSize,
+                        selectedColor: selectedColor,
+                      )),
                     );
                   },
                   style: ElevatedButton.styleFrom(
@@ -482,5 +547,25 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       case 'white': return Colors.white;
       default: return Colors.grey;
     }
+  }
+
+  Widget _buildShareOption(IconData icon, String label, Color color) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: color, size: 28),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textDark),
+        ),
+      ],
+    );
   }
 }

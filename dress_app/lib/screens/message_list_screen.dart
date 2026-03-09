@@ -4,6 +4,8 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dress_app/theme.dart';
 import 'package:dress_app/screens/ai_chat_screen.dart';
+import 'package:dress_app/screens/chat_screen.dart';
+import 'package:dress_app/services/mock_data_service.dart';
 
 class MessageListScreen extends StatelessWidget {
   const MessageListScreen({super.key});
@@ -30,57 +32,48 @@ class MessageListScreen extends StatelessWidget {
           const SizedBox(width: 8),
         ],
       ),
-      body: SingleChildScrollView(
+      body: ListView.builder(
         padding: const EdgeInsets.only(top: 16, bottom: 100),
-        child: Column(
-          children: [
-            // AI Stylist special chat
-            _buildChatTile(
-              context,
-              name: 'AI Stylist Assistant',
-              lastMessage: 'How can I help you find the perfect dress today?',
-              time: 'Just now',
-              imageUrl: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?q=80&w=200&auto=format&fit=crop', // Robot/AI themed image
-              unreadCount: 1,
-              isAI: true,
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              child: Divider(),
-            ),
-            // Vendor / other user chats
-            _buildChatTile(
-              context,
-              name: 'Sarah\'s Boutique',
-              lastMessage: 'Yes, the red evening gown is available this weekend.',
-              time: '2h ago',
-              imageUrl: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=200&auto=format&fit=crop',
-              unreadCount: 0,
-            ),
-            _buildChatTile(
-              context,
-              name: 'Emily Davis',
-              lastMessage: 'Thanks for returning the dress in perfect condition!',
-              time: 'Yesterday',
-              imageUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=200&auto=format&fit=crop',
-              unreadCount: 0,
-            ),
-            _buildChatTile(
-              context,
-              name: 'Luxury Threads Dubai',
-              lastMessage: 'Your deposit has been refunded. It should reflect in 2-3 days.',
-              time: 'Mon',
-              imageUrl: 'https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=200&auto=format&fit=crop',
-              unreadCount: 0,
-            ),
-          ],
-        ),
+        itemCount: MockDataService.mockChatSessions.length + 1, // +1 for AI Stylist
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return Column(
+              children: [
+                _buildChatTile(
+                  context,
+                  id: 'ai_stylist',
+                  name: 'AI Stylist Assistant',
+                  lastMessage: 'How can I help you find the perfect dress today?',
+                  time: 'Just now',
+                  imageUrl: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?q=80&w=200&auto=format&fit=crop',
+                  unreadCount: 1,
+                  isAI: true,
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  child: Divider(),
+                ),
+              ],
+            );
+          }
+          final session = MockDataService.mockChatSessions[index - 1];
+          return _buildChatTile(
+            context,
+            id: session.id,
+            name: session.peerName,
+            lastMessage: session.lastMessage,
+            time: '2h ago', // In a real app, this would be formatted from session.lastMessageTime
+            imageUrl: session.peerAvatar,
+            unreadCount: session.unreadCount,
+          );
+        },
       ),
     );
   }
 
   Widget _buildChatTile(
     BuildContext context, {
+    required String id,
     required String name,
     required String lastMessage,
     required String time,
@@ -93,8 +86,8 @@ class MessageListScreen extends StatelessWidget {
         if (isAI) {
           Navigator.push(context, MaterialPageRoute(builder: (_) => const AiChatScreen()));
         } else {
-          // Open normal chat - to be implemented if needed
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('User chat coming soon')));
+          final session = MockDataService.mockChatSessions.firstWhere((s) => s.id == id);
+          Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen(session: session)));
         }
       },
       child: Padding(

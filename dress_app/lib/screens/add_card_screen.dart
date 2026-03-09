@@ -5,6 +5,10 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:dress_app/theme.dart';
 import 'package:dress_app/widgets/custom_text_field.dart';
 import 'package:dress_app/screens/order_success_screen.dart';
+import 'package:dress_app/models/cart_item.dart';
+import 'package:dress_app/models/order.dart';
+import 'package:dress_app/services/app_state.dart';
+import 'package:provider/provider.dart';
 
 class CardNumberFormatter extends TextInputFormatter {
   @override
@@ -29,7 +33,8 @@ class CardNumberFormatter extends TextInputFormatter {
 }
 
 class AddCardScreen extends StatefulWidget {
-  const AddCardScreen({Key? key}) : super(key: key);
+  final List<CartItem> cartItems;
+  const AddCardScreen({Key? key, required this.cartItems}) : super(key: key);
 
   @override
   State<AddCardScreen> createState() => _AddCardScreenState();
@@ -55,6 +60,22 @@ class _AddCardScreenState extends State<AddCardScreen> {
 
   void _processPayment() {
     if (_formKey.currentState!.validate()) {
+      // Create order
+      final double subtotal = widget.cartItems.fold(0, (sum, item) => sum + item.product.price);
+      final double total = subtotal + 120.0; // Adding delivery (20) and deposit (100)
+
+      final newOrder = Order(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        date: 'Today', // Simplifying for dummy
+        itemsCount: widget.cartItems.length,
+        totalPrice: total,
+        status: OrderStatus.preparing,
+        imageUrl: widget.cartItems.isNotEmpty ? widget.cartItems.first.product.images.first : '',
+      );
+      
+      context.read<AppState>().addOrder(newOrder);
+      context.read<AppState>().clearCart();
+
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const OrderSuccessScreen()),

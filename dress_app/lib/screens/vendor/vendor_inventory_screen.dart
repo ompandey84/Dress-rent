@@ -18,7 +18,7 @@ class _VendorInventoryScreenState extends State<VendorInventoryScreen> {
   final List<Map<String, dynamic>> items = [
     {
       'name': 'Premium Hoodie',
-      'price': '₹295/day',
+      'price': 'AED 295/day',
       'quantity': 8,
       'rating': 4.9,
       'image': 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=300&auto=format&fit=crop',
@@ -26,7 +26,7 @@ class _VendorInventoryScreenState extends State<VendorInventoryScreen> {
     },
     {
       'name': 'Denim Jacket',
-      'price': '₹350/day',
+      'price': 'AED 350/day',
       'quantity': 5,
       'rating': 4.7,
       'image': 'https://images.unsplash.com/photo-1516257984-b1b4d707412e?q=80&w=300&auto=format&fit=crop',
@@ -34,7 +34,7 @@ class _VendorInventoryScreenState extends State<VendorInventoryScreen> {
     },
     {
       'name': 'Casual T-Shirt',
-      'price': '₹150/day',
+      'price': 'AED 150/day',
       'quantity': 12,
       'rating': 4.5,
       'image': 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=300&auto=format&fit=crop',
@@ -42,7 +42,7 @@ class _VendorInventoryScreenState extends State<VendorInventoryScreen> {
     },
     {
       'name': 'Summer Dress',
-      'price': '₹400/day',
+      'price': 'AED 400/day',
       'quantity': 3,
       'rating': 4.8,
       'image': 'https://images.unsplash.com/photo-1618932260643-eee4a2f652a6?q=80&w=300&auto=format&fit=crop',
@@ -50,7 +50,7 @@ class _VendorInventoryScreenState extends State<VendorInventoryScreen> {
     },
     {
       'name': 'Leather Jacket',
-      'price': '₹500/day',
+      'price': 'AED 500/day',
       'quantity': 2,
       'rating': 4.6,
       'image': 'https://images.unsplash.com/photo-1551028719-00167b16eac5?q=80&w=300&auto=format&fit=crop',

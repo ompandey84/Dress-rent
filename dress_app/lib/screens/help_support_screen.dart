@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:dress_app/theme.dart';
+import 'package:dress_app/screens/message_list_screen.dart';
 
 class HelpSupportScreen extends StatelessWidget {
   const HelpSupportScreen({super.key});
@@ -95,7 +96,7 @@ class HelpSupportScreen extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  // Connect to support or open chat
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const MessageListScreen()));
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.textDark,
@@ -105,6 +106,24 @@ class HelpSupportScreen extends StatelessWidget {
                 child: Text(
                   'CONTACT US',
                   style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Opening email client...')));
+                },
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppTheme.textDark, width: 1.5),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+                ),
+                child: Text(
+                  'EMAIL US',
+                  style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: AppTheme.textDark),
                 ),
               ),
             ),

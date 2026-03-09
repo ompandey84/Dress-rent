@@ -2,22 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:dress_app/theme.dart';
-import 'package:dress_app/models/product.dart';
 import 'package:dress_app/screens/shipping_address_screen.dart';
 import 'dart:async';
 import 'package:dress_app/screens/add_card_screen.dart';
+import 'package:dress_app/models/cart_item.dart';
 
 class CheckoutScreen extends StatefulWidget {
-  final Product product;
-  const CheckoutScreen({super.key, required this.product});
+  final List<CartItem> cartItems;
+  const CheckoutScreen({super.key, required this.cartItems});
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreenState();
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
-  // Mock Data
-  String rentalDates = 'Mar 15 - Mar 18, 2026';
   bool isPromoApplied = false;
   Duration timeRemaining = const Duration(minutes: 10, seconds: 0);
   Timer? _timer;
@@ -109,10 +107,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Cart Item Section
-                Text('YOUR ITEM', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textLight, letterSpacing: 1.0)),
+                // Cart Items Section
+                Text('YOUR ITEMS', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textLight, letterSpacing: 1.0)),
                 const SizedBox(height: 12),
-                Container(
+                ...widget.cartItems.map((cartItem) => Container(
+                  margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -124,8 +123,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: widget.product.images.isNotEmpty ? Image.network(
-                          widget.product.images.first,
+                        child: cartItem.product.images.isNotEmpty ? Image.network(
+                          cartItem.product.images.first,
                           width: 80,
                           height: 100,
                           fit: BoxFit.cover,
@@ -141,12 +140,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              widget.product.name.toUpperCase(),
+                              cartItem.product.name.toUpperCase(),
                               style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textDark),
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Size: ${widget.product.sizes.isNotEmpty ? widget.product.sizes.first : 'N/A'} • ${widget.product.colors.isNotEmpty ? widget.product.colors.first : 'N/A'}',
+                              'Size: ${cartItem.selectedSize} • Color: ${cartItem.selectedColor}',
                               style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textLight),
                             ),
                             const SizedBox(height: 12),
@@ -156,7 +155,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 const Icon(FluentIcons.calendar_ltr_24_regular, size: 14, color: AppTheme.textLight),
                                 const SizedBox(width: 4),
                                 Text(
-                                  rentalDates,
+                                  cartItem.rentalDates,
                                   style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textDark),
                                 ),
                               ],
@@ -166,7 +165,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ),
                     ],
                   ),
-                ),
+                )).toList(),
                 const SizedBox(height: 24),
 
                 // Delivery Address Summary
@@ -176,7 +175,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     Text('SHIPPING TO', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.textLight, letterSpacing: 1.0)),
                     GestureDetector(
                       onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => ShippingAddressScreen(product: widget.product))).then((newAddress) {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => ShippingAddressScreen(product: widget.cartItems.first.product))).then((newAddress) {
                           if (newAddress != null) {
                             setState(() {
                               _addresses.add(newAddress as Map<String, dynamic>);
@@ -304,12 +303,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                   child: Builder(
                     builder: (context) {
+                      double subtotal = widget.cartItems.fold(0, (sum, item) => sum + item.product.price);
                       double discount = isPromoApplied ? 20.0 : 0.0;
-                      double total = widget.product.price + 20 + 100 - discount;
+                      double total = subtotal + 20 + 100 - discount;
                       
                       return Column(
                         children: [
-                          _buildSummaryRow('Rental Price (3 days)', 'AED ${widget.product.price.toStringAsFixed(2)}'),
+                          _buildSummaryRow('Rental Price', 'AED ${subtotal.toStringAsFixed(2)}'),
                           const SizedBox(height: 12),
                           _buildSummaryRow('Delivery Fee (2.5 km)', 'AED 20.00'),
                           const SizedBox(height: 12),
@@ -354,7 +354,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const AddCardScreen()),
+                    MaterialPageRoute(builder: (context) => AddCardScreen(cartItems: widget.cartItems)),
                   );
                 },
                 style: ElevatedButton.styleFrom(

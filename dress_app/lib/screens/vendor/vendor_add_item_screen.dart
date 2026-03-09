@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:dress_app/theme.dart';
 
@@ -15,6 +17,16 @@ class _VendorAddItemScreenState extends State<VendorAddItemScreen> {
   String selectedGender = 'Unisex';
   Set<String> selectedSizes = {'M', 'L'};
   final List<String> uploadedImages = [];
+
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        uploadedImages.add(image.path);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,9 +130,9 @@ class _VendorAddItemScreenState extends State<VendorAddItemScreen> {
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    Expanded(child: _buildTextField('Rental Price/Day', '₹0', FluentIcons.money_24_regular, keyboardType: TextInputType.number)),
+                    Expanded(child: _buildTextField('Rental Price/Day', 'AED 0', FluentIcons.money_24_regular, keyboardType: TextInputType.number)),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildTextField('Security Deposit', '₹0', FluentIcons.shield_24_regular, keyboardType: TextInputType.number)),
+                    Expanded(child: _buildTextField('Security Deposit', 'AED 0', FluentIcons.shield_24_regular, keyboardType: TextInputType.number)),
                   ],
                 ),
                 const SizedBox(height: 28),
@@ -307,7 +319,7 @@ class _VendorAddItemScreenState extends State<VendorAddItemScreen> {
               itemBuilder: (context, index) {
                 if (index == uploadedImages.length) {
                   return GestureDetector(
-                    onTap: () => setState(() => uploadedImages.add('https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=300&auto=format&fit=crop')),
+                    onTap: _pickImage,
                     child: Container(
                       width: 100,
                       margin: const EdgeInsets.only(right: 12),
@@ -326,7 +338,9 @@ class _VendorAddItemScreenState extends State<VendorAddItemScreen> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
                     image: DecorationImage(
-                      image: NetworkImage(uploadedImages[index]),
+                      image: uploadedImages[index].startsWith('http')
+                          ? NetworkImage(uploadedImages[index]) as ImageProvider
+                          : FileImage(File(uploadedImages[index])),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -352,7 +366,7 @@ class _VendorAddItemScreenState extends State<VendorAddItemScreen> {
           )
         else
           GestureDetector(
-            onTap: () => setState(() => uploadedImages.add('https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=300&auto=format&fit=crop')),
+            onTap: _pickImage,
             child: Container(
               width: double.infinity,
               height: 160,

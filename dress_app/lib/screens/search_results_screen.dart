@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dress_app/theme.dart';
 import 'package:dress_app/models/product.dart';
-import 'package:dress_app/screens/product_details_screen.dart';
 import 'package:dress_app/services/mock_data_service.dart';
-import 'package:dress_app/widgets/favorite_button.dart';
+import 'package:dress_app/widgets/product_card.dart';
 import 'package:dress_app/screens/filters_bottom_sheet.dart';
 
 class SearchResultsScreen extends StatefulWidget {
@@ -198,11 +196,11 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                   crossAxisCount: 2,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 24,
-                  childAspectRatio: 0.55,
+                  childAspectRatio: 0.5,
                 ),
                 itemCount: _products.length,
                 itemBuilder: (context, index) {
-                  return _buildProductCard(context, _products[index]);
+                  return ProductCard(product: _products[index], imageHeight: 180);
                 },
               ),
             ),
@@ -212,93 +210,4 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     );
   }
 
-  Widget _buildProductCard(BuildContext context, dynamic product) {
-    String title = product.name;
-    String location = product.location;
-    String price = 'AED ${product.price.toStringAsFixed(2)}/day';
-    String imgUrl = product.images.isNotEmpty ? product.images.first : '';
-    bool isVerified = product.isVerifiedStore;
-    String rating = product.rating.toString();
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => ProductDetailsScreen(product: product)),
-        );
-      },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: CachedNetworkImage(
-                    imageUrl: imgUrl,
-                    width: double.infinity,
-                    height: double.infinity,
-                    fit: BoxFit.cover,
-                    errorWidget: (context, url, error) => Container(color: Colors.grey[200]),
-                  ),
-                ),
-                Positioned(
-                  top: 12,
-                  right: 12,
-                  child: FavoriteButton(
-                    productId: product.id,
-                    backgroundColor: Colors.white.withOpacity(0.9),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  location,
-                  style: GoogleFonts.inter(fontSize: 10, color: AppTheme.textLight, fontWeight: FontWeight.w600),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              if (isVerified) ...[
-                const SizedBox(width: 4),
-                const Icon(Icons.verified, size: 12, color: Colors.green),
-              ],
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w800, color: AppTheme.textDark),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                price,
-                style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.primaryLime),
-              ),
-              Row(
-                children: [
-                  const Icon(Icons.star, size: 12, color: Colors.amber),
-                  const SizedBox(width: 2),
-                  Text(
-                    rating,
-                    style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textLight),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 }

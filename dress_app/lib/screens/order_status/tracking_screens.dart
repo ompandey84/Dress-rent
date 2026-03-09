@@ -17,6 +17,7 @@ class RequestedOrderScreen extends StatelessWidget {
       title: 'REQUESTED ORDER',
       currentStep: 0,
       orderCost: 'AED ${order.totalPrice.toStringAsFixed(2)}',
+      canCancel: true,
     );
   }
 }
@@ -31,6 +32,7 @@ class PreparingOrderScreen extends StatelessWidget {
       title: 'PREPARING ORDER',
       currentStep: 1,
       orderCost: 'AED ${order.totalPrice.toStringAsFixed(2)}',
+      canCancel: true,
     );
   }
 }
@@ -60,6 +62,8 @@ class DeliveredOrderScreen extends StatelessWidget {
       currentStep: 3,
       orderCost: 'AED ${order.totalPrice.toStringAsFixed(2)}',
       showActionButtons: true,
+      canExtend: true,
+      canReturn: true,
     );
   }
 }
@@ -69,12 +73,18 @@ class _BaseTrackingScreen extends StatelessWidget {
   final String title;
   final String orderCost;
   final bool showActionButtons;
+  final bool canCancel;
+  final bool canExtend;
+  final bool canReturn;
 
   const _BaseTrackingScreen({
     required this.currentStep,
     required this.title,
     required this.orderCost,
     this.showActionButtons = false,
+    this.canCancel = false,
+    this.canExtend = false,
+    this.canReturn = false,
     Key? key,
   }) : super(key: key);
 
@@ -170,10 +180,10 @@ class _BaseTrackingScreen extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             _buildInfoCol(
-                                'Created, 18 Oct. 2025', 'Diriyah, Riyadh',
+                                'Created, 18 Oct. 2025', 'Downtown, Dubai',
                                 crossAlignment: CrossAxisAlignment.start),
                             _buildInfoCol(
-                                'Estimated, 19 Oct 2025', 'Jawhra, Jeddah',
+                                'Estimated, 19 Oct 2025', 'Marina, Abu Dhabi',
                                 crossAlignment: CrossAxisAlignment.end),
                           ],
                         ),
@@ -183,9 +193,9 @@ class _BaseTrackingScreen extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            _buildInfoCol('Form', 'Diriyah, Riyadh',
+                            _buildInfoCol('Form', 'Downtown, Dubai',
                                 crossAlignment: CrossAxisAlignment.start),
-                            _buildInfoCol('To', 'Jawhra, Jeddah',
+                            _buildInfoCol('To', 'Marina, Abu Dhabi',
                                 crossAlignment: CrossAxisAlignment.end),
                           ],
                         ),
@@ -193,12 +203,13 @@ class _BaseTrackingScreen extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            _buildInfoCol('Customer', 'Ahmad Hasan',
+                            _buildInfoCol('Customer', 'Arafat',
                                 crossAlignment: CrossAxisAlignment.start),
                             _buildInfoCol('Order Cost', orderCost,
                                 crossAlignment: CrossAxisAlignment.end),
                           ],
                         ),
+                        if (canCancel || canExtend || canReturn || showActionButtons) _buildManagementButtons(context),
                         if (showActionButtons) _buildActionButtons(context),
                       ],
                     ),
@@ -447,6 +458,89 @@ class _BaseTrackingScreen extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildManagementButtons(BuildContext context) {
+    return Column(
+      children: [
+        const SizedBox(height: 32),
+        if (canCancel)
+          _buildLongButton(
+            context,
+            'CANCEL ORDER',
+            Colors.red,
+            () => _showMockDialog(context, 'Cancel Order', 'Are you sure you want to cancel this order? A cancellation fee of AED 50 may apply.'),
+          ),
+        if (canExtend)
+          _buildLongButton(
+            context,
+            'EXTEND RENTAL',
+            const Color(0xFF0C6B86),
+            () => _showMockDialog(context, 'Extend Rental', 'Would you like to extend your rental for another 3 days? Additional charges will apply.'),
+          ),
+        if (canReturn)
+          _buildLongButton(
+            context,
+            'RETURN ORDER',
+            AppTheme.primaryLime,
+            () => _showMockDialog(context, 'Return Order', 'Your return request has been initiated. A courier will contact you shortly.'),
+            isPrimary: true,
+          ),
+      ],
+    );
+  }
+
+  Widget _buildLongButton(BuildContext context, String label, Color color, VoidCallback onTap, {bool isPrimary = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          decoration: BoxDecoration(
+            color: isPrimary ? color : Colors.white,
+            borderRadius: BorderRadius.circular(100),
+            border: isPrimary ? null : Border.all(color: color.withOpacity(0.3)),
+            boxShadow: isPrimary ? [BoxShadow(color: color.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 5))] : null,
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
+                color: isPrimary ? AppTheme.textDark : color,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showMockDialog(BuildContext context, String title, String content) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.w800)),
+        content: Text(content, style: GoogleFonts.inter()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('CLOSE', style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: AppTheme.textLight)),
+          ),
+          if (title != 'Return Order')
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$title confirmed!')));
+              },
+              child: Text('CONFIRM', style: GoogleFonts.inter(fontWeight: FontWeight.w900, color: const Color(0xFF0C6B86))),
+            ),
+        ],
+      ),
     );
   }
 

@@ -48,7 +48,7 @@ class VendorFinancialsScreen extends StatelessWidget {
                 children: [
                   Text('Total Earnings', style: GoogleFonts.inter(fontSize: 14, color: Colors.white.withOpacity(0.6))),
                   const SizedBox(height: 8),
-                  Text('₹45,200', style: GoogleFonts.inter(fontSize: 36, fontWeight: FontWeight.w900, color: Colors.white)),
+                  Text('AED 45,200', style: GoogleFonts.inter(fontSize: 36, fontWeight: FontWeight.w900, color: Colors.white)),
                   const SizedBox(height: 4),
                   Row(
                     children: [
@@ -86,7 +86,7 @@ class VendorFinancialsScreen extends StatelessWidget {
                             children: [
                               Text('Pending', style: GoogleFonts.inter(fontSize: 11, color: Colors.white.withOpacity(0.5))),
                               const SizedBox(height: 4),
-                              Text('₹3,200', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.orange)),
+                              Text('AED 3,200', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.orange)),
                             ],
                           ),
                         ),
@@ -104,7 +104,7 @@ class VendorFinancialsScreen extends StatelessWidget {
                             children: [
                               Text('This Month', style: GoogleFonts.inter(fontSize: 11, color: Colors.white.withOpacity(0.5))),
                               const SizedBox(height: 4),
-                              Text('₹8,500', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.primaryLime)),
+                              Text('AED 8,500', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.primaryLime)),
                             ],
                           ),
                         ),
@@ -151,11 +151,11 @@ class VendorFinancialsScreen extends StatelessWidget {
             // Recent Transactions
             Text('Recent Transactions', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textDark)),
             const SizedBox(height: 16),
-            _buildTransactionCard('Premium Hoodie', 'BK-2841', '₹2,450', 'Credited', Colors.green, 'Mar 8'),
-            _buildTransactionCard('Denim Jacket', 'BK-2840', '₹1,800', 'Credited', Colors.green, 'Mar 6'),
-            _buildTransactionCard('Casual T-Shirt', 'BK-2839', '₹900', 'Pending', Colors.orange, 'Mar 5'),
-            _buildTransactionCard('Summer Dress', 'BK-2835', '₹2,100', 'Credited', Colors.green, 'Mar 2'),
-            _buildTransactionCard('Leather Jacket', 'BK-2833', '₹3,200', 'Credited', Colors.green, 'Feb 28'),
+            _buildTransactionCard('Premium Hoodie', 'BK-2841', 'AED 2,450', 'Credited', Colors.green, 'Mar 8'),
+            _buildTransactionCard('Denim Jacket', 'BK-2840', 'AED 1,800', 'Credited', Colors.green, 'Mar 6'),
+            _buildTransactionCard('Casual T-Shirt', 'BK-2839', 'AED 900', 'Pending', Colors.orange, 'Mar 5'),
+            _buildTransactionCard('Summer Dress', 'BK-2835', 'AED 2,100', 'Credited', Colors.green, 'Mar 2'),
+            _buildTransactionCard('Leather Jacket', 'BK-2833', 'AED 3,200', 'Credited', Colors.green, 'Feb 28'),
 
             const SizedBox(height: 24),
 
@@ -221,7 +221,7 @@ class VendorFinancialsScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Text(
-                    '₹${((item['value'] as double) * 10).toStringAsFixed(1)}K',
+                    'AED ${((item['value'] as double) * 10).toStringAsFixed(1)}K',
                     style: GoogleFonts.inter(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,

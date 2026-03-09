@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 import 'package:dress_app/services/app_state.dart';
 import 'package:dress_app/models/order.dart';
 import 'package:dress_app/screens/vendor/vendor_signup_screen.dart';
+import 'package:dress_app/screens/legal_content_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -76,7 +77,7 @@ class ProfileScreen extends StatelessWidget {
                   const Icon(Icons.star, size: 14, color: Colors.amber),
                   const SizedBox(width: 4),
                   Text(
-                    '4.8',
+                    user.rating.toStringAsFixed(1),
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
@@ -84,7 +85,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    ' (84 Reviews)',
+                    ' (${user.reviewsCount} Reviews)',
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       color: AppTheme.textLight,
@@ -118,7 +119,7 @@ class ProfileScreen extends StatelessWidget {
                   Expanded(
                     child: _buildStatCard(
                       'Reviews',
-                      '4.5',
+                      user.rating.toStringAsFixed(1),
                       FluentIcons.star_24_regular,
                       Colors.red,
                     ),
@@ -218,6 +219,83 @@ class ProfileScreen extends StatelessWidget {
                   'Become a Vendor',
                 ),
               ),
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LegalContentScreen(title: 'Terms & Conditions')),
+                  );
+                },
+                child: _buildSettingsItem(
+                  FluentIcons.document_text_24_regular,
+                  'Terms & Conditions',
+                ),
+              ),
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LegalContentScreen(title: 'Privacy Policy')),
+                  );
+                },
+                child: _buildSettingsItem(
+                  FluentIcons.shield_24_regular,
+                  'Privacy Policy',
+                ),
+              ),
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LegalContentScreen(title: 'About App')),
+                  );
+                },
+                child: _buildSettingsItem(
+                  FluentIcons.info_24_regular,
+                  'About App',
+                ),
+              ),
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () {
+                  _showDeleteAccountDialog(context);
+                },
+                child: _buildSettingsItem(
+                  FluentIcons.delete_24_regular,
+                  'Delete Account',
+                  isDestructive: true,
+                ),
+              ),
+              const SizedBox(height: 32),
+              
+              // Logout Button
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () {
+                    // Navigate back to login (mock)
+                    Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                  },
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Colors.red.shade100)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(FluentIcons.arrow_exit_20_regular, color: Colors.red),
+                      const SizedBox(width: 8),
+                      Text(
+                        'SIGN OUT',
+                        style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.red),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
         );
@@ -275,7 +353,44 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSettingsItem(IconData icon, String title) {
+  void _showDeleteAccountDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(
+          'Delete Account?',
+          style: GoogleFonts.inter(fontWeight: FontWeight.w900, color: Colors.red),
+        ),
+        content: Text(
+          'This action is permanent and cannot be undone. All your data will be removed.',
+          style: GoogleFonts.inter(color: AppTheme.textLight),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'CANCEL',
+              style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: AppTheme.textLight),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+            },
+            child: Text(
+              'DELETE',
+              style: GoogleFonts.inter(fontWeight: FontWeight.w900, color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSettingsItem(IconData icon, String title, {bool isDestructive = false}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
@@ -285,7 +400,7 @@ class ProfileScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, color: AppTheme.textLight, size: 20),
+          Icon(icon, color: isDestructive ? Colors.red : AppTheme.textLight, size: 20),
           const SizedBox(width: 16),
           Expanded(
             child: Text(
@@ -293,13 +408,13 @@ class ProfileScreen extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: AppTheme.textDark,
+                color: isDestructive ? Colors.red : AppTheme.textDark,
               ),
             ),
           ),
-          const Icon(
+          Icon(
             FluentIcons.chevron_right_24_regular,
-            color: AppTheme.textLight,
+            color: isDestructive ? Colors.red.withValues(alpha: 0.3) : AppTheme.textLight,
             size: 20,
           ),
         ],

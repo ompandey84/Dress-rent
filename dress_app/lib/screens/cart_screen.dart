@@ -3,18 +3,18 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:dress_app/theme.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:dress_app/services/mock_data_service.dart';
 import 'package:dress_app/screens/checkout_screen.dart';
+import 'package:dress_app/services/app_state.dart';
+import 'package:provider/provider.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Dummy cart items
-    final cartItems = MockDataService.mockProducts.take(2).toList();
-    final double subtotal = cartItems.fold(0, (sum, item) => sum + item.price);
-    final double total = subtotal + 25.0; // dummy shipping or fee
+    final cartItems = context.watch<AppState>().cartItems;
+    final double subtotal = context.watch<AppState>().cartTotal;
+    final double total = subtotal > 0 ? subtotal + 25.0 : 0.0;
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundLight,
@@ -59,7 +59,7 @@ class CartScreen extends StatelessWidget {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(12),
                               image: DecorationImage(
-                                image: CachedNetworkImageProvider(item.images.first),
+                                image: CachedNetworkImageProvider(item.product.images.isNotEmpty ? item.product.images.first : ''),
                                 fit: BoxFit.cover,
                               ),
                             ),
@@ -74,18 +74,23 @@ class CartScreen extends StatelessWidget {
                                   children: [
                                     Expanded(
                                       child: Text(
-                                        item.storeName,
+                                        item.product.storeName,
                                         style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textLight, fontWeight: FontWeight.w500),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
-                                    const Icon(FluentIcons.dismiss_20_regular, size: 20, color: AppTheme.textLight),
+                                    GestureDetector(
+                                      onTap: () {
+                                        context.read<AppState>().removeFromCart(item.id);
+                                      },
+                                      child: const Icon(FluentIcons.dismiss_20_regular, size: 20, color: AppTheme.textLight),
+                                    ),
                                   ],
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  item.name,
+                                  item.product.name,
                                   style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.textDark),
                                 ),
                                 const SizedBox(height: 8),
@@ -97,7 +102,7 @@ class CartScreen extends StatelessWidget {
                                         color: const Color(0xFFF6F8FA),
                                         borderRadius: BorderRadius.circular(4),
                                       ),
-                                      child: Text('Size: M', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textDark)),
+                                      child: Text('Size: ${item.selectedSize}', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textDark)),
                                     ),
                                     const SizedBox(width: 8),
                                     Container(
@@ -106,13 +111,13 @@ class CartScreen extends StatelessWidget {
                                         color: const Color(0xFFF6F8FA),
                                         borderRadius: BorderRadius.circular(4),
                                       ),
-                                      child: Text('3 Days', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textDark)),
+                                      child: Text(item.rentalDates, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textDark)),
                                     ),
                                   ],
                                 ),
                                 const SizedBox(height: 12),
                                 Text(
-                                  'AED ${item.price.toStringAsFixed(2)}',
+                                  'AED ${item.product.price.toStringAsFixed(2)}',
                                   style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.primaryLime),
                                 ),
                               ],
@@ -161,7 +166,7 @@ class CartScreen extends StatelessWidget {
                           child: ElevatedButton(
                             onPressed: () {
                               if (cartItems.isNotEmpty) {
-                                Navigator.push(context, MaterialPageRoute(builder: (_) => CheckoutScreen(product: cartItems.first)));
+                                Navigator.push(context, MaterialPageRoute(builder: (_) => CheckoutScreen(cartItems: cartItems)));
                               }
                             },
                             style: ElevatedButton.styleFrom(

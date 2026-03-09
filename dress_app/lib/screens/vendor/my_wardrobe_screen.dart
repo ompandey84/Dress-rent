@@ -8,6 +8,7 @@ import 'package:dress_app/services/app_state.dart';
 import 'package:dress_app/screens/vendor/vendor_signup_screen.dart';
 import 'package:dress_app/screens/vendor/vendor_dashboard_screen.dart';
 import 'package:dress_app/screens/profile_screen.dart';
+import 'package:dress_app/screens/my_orders_screen.dart';
 
 class MyWardrobeScreen extends StatefulWidget {
   const MyWardrobeScreen({Key? key}) : super(key: key);
@@ -347,7 +348,7 @@ class _MyWardrobeScreenState extends State<MyWardrobeScreen> {
             const SizedBox(width: 12),
             Expanded(child: _buildQuickStatCard('Pending\nOrders', '3', FluentIcons.clock_24_regular, Colors.orange)),
             const SizedBox(width: 12),
-            Expanded(child: _buildQuickStatCard('This Month\nEarnings', '₹8.5K', FluentIcons.money_24_regular, Colors.green)),
+            Expanded(child: _buildQuickStatCard('This Month\nEarnings', 'AED 8.5K', FluentIcons.money_24_regular, Colors.green)),
           ],
         ),
       ],
@@ -406,9 +407,14 @@ class _MyWardrobeScreenState extends State<MyWardrobeScreen> {
               'Your Rentals',
               style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textDark),
             ),
-            Text(
-              'See All',
-              style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textDark),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const MyOrdersScreen()));
+              },
+              child: Text(
+                'See All',
+                style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textDark),
+              ),
             ),
           ],
         ),

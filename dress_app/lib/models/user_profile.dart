@@ -8,6 +8,8 @@ class UserProfile {
   String avatarUrl;
   String location;
   bool isVendor;
+  int reviewsCount;
+  double rating;
   List<Address> addresses;
 
   UserProfile({
@@ -18,6 +20,8 @@ class UserProfile {
     required this.avatarUrl,
     this.location = '',
     this.isVendor = false,
+    this.reviewsCount = 0,
+    this.rating = 0.0,
     this.addresses = const [],
   });
 }

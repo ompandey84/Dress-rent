@@ -69,7 +69,7 @@ class _VendorNotificationsScreenState extends State<VendorNotificationsScreen> {
           ),
           _buildNotificationCard(
             'Payment Processed',
-            '₹2,450 has been credited to your bank account for booking BK-2838.',
+            'AED 2,450 has been credited to your bank account for booking BK-2838.',
             '3 hours ago',
             FluentIcons.money_24_regular,
             const Color(0xFF2E8A99),
@@ -95,7 +95,7 @@ class _VendorNotificationsScreenState extends State<VendorNotificationsScreen> {
           ),
           _buildNotificationCard(
             'Payment Processed',
-            '₹1,800 has been credited to your bank account for booking BK-2836.',
+            'AED 1,800 has been credited to your bank account for booking BK-2836.',
             'Yesterday, 10:00 AM',
             FluentIcons.money_24_regular,
             const Color(0xFF2E8A99),

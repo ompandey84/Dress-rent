@@ -4,6 +4,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:dress_app/theme.dart';
 import 'package:dress_app/widgets/custom_text_field.dart';
 import 'package:dress_app/screens/main_navigation.dart';
+import 'package:dress_app/screens/legal_content_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({Key? key}) : super(key: key);
@@ -21,6 +22,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _agreedToTerms = false;
 
   @override
   void dispose() {
@@ -168,6 +170,58 @@ class _SignupScreenState extends State<SignupScreen> {
                     },
                   ),
                 ),
+                const SizedBox(height: 24),
+                
+                // T&C Checkbox
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: Checkbox(
+                        value: _agreedToTerms,
+                        onChanged: (val) {
+                          setState(() {
+                            _agreedToTerms = val ?? false;
+                          });
+                        },
+                        activeColor: AppTheme.primaryLime,
+                        checkColor: AppTheme.textDark,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                        side: BorderSide(color: AppTheme.textLight.withOpacity(0.3)),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const LegalContentScreen(title: 'Terms & Conditions')),
+                          );
+                        },
+                        child: RichText(
+                          text: TextSpan(
+                            style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textLight),
+                            children: [
+                              const TextSpan(text: 'I agree to the '),
+                              TextSpan(
+                                text: 'Terms & Conditions',
+                                style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: AppTheme.textDark, decoration: TextDecoration.underline),
+                              ),
+                              const TextSpan(text: ' and '),
+                              TextSpan(
+                                text: 'Privacy Policy',
+                                style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: AppTheme.textDark, decoration: TextDecoration.underline),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                
                 const SizedBox(height: 40),
 
                 // Sign Up Button
@@ -175,7 +229,15 @@ class _SignupScreenState extends State<SignupScreen> {
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: () => _navigateToHome(context),
+                    onPressed: () {
+                      if (!_agreedToTerms) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Please agree to the Terms & Conditions')),
+                        );
+                        return;
+                      }
+                      _navigateToHome(context);
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryLime,
                       shape: RoundedRectangleBorder(

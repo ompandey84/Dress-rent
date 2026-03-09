@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dress_app/models/product.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -13,14 +14,33 @@ import 'package:dress_app/screens/category_listing_screen.dart';
 import 'package:dress_app/screens/filters_bottom_sheet.dart';
 import 'package:dress_app/widgets/product_card.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String _selectedCategory = 'All';
 
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
     final user = appState.currentUser;
-    final products = MockDataService.mockProducts;
+    final allProducts = MockDataService.mockProducts;
+    
+    // Filter products based on selected category
+    List<Product> products = allProducts;
+    if (_selectedCategory == 'New Arrived') {
+      products = allProducts.take(3).toList(); // Mock filtering
+    } else if (_selectedCategory == 'Popular') {
+      products = allProducts.where((p) => p.rating >= 4.5).toList();
+    } else if (_selectedCategory == 'Verified') {
+      products = allProducts.where((p) => p.storeName.contains('Design') || p.storeName.contains('Boutique')).toList();
+    } else if (_selectedCategory == 'Offer') {
+      products = allProducts.where((p) => p.price < 300).toList();
+    }
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -51,7 +71,7 @@ class HomeScreen extends StatelessWidget {
                     _buildInfluencersSection(),
                     _buildSearchBar(context),
                     const SizedBox(height: 24),
-                    _buildCategoryChips(context),
+                    _buildCategoryChips(),
                     const SizedBox(height: 24),
                     _buildSectionTitle(context, 'New Arrived'),
                     const SizedBox(height: 16),
@@ -207,78 +227,177 @@ class HomeScreen extends StatelessWidget {
     required String imgUrl,
     bool isVerified = false,
   }) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.center,
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              padding: const EdgeInsets.all(2.5),
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [Color(0xFF2E8A99), Color(0xFFECA04F)],
-                  begin: Alignment.topRight,
-                  end: Alignment.bottomLeft,
+    return GestureDetector(
+      onTap: () {
+        if (isYou) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              title: Text(
+                'Post Your Look',
+                style: GoogleFonts.inter(fontWeight: FontWeight.w900, color: AppTheme.textDark),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                   Text(
+                    'Share your style with the community and tag the dresses you are wearing.',
+                    style: GoogleFonts.inter(color: AppTheme.textLight),
+                  ),
+                  const SizedBox(height: 20),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryLime.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppTheme.primaryLime.withValues(alpha: 0.2)),
+                    ),
+                    child: Column(
+                      children: [
+                        const Icon(FluentIcons.image_add_24_regular, size: 32, color: AppTheme.primaryLime),
+                        const SizedBox(height: 8),
+                        Text('Upload Photo/Video', style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: AppTheme.primaryLime)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('CANCEL', style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: AppTheme.textLight)),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Look posted successfully!')));
+                  },
+                  child: Text('POST', style: GoogleFonts.inter(fontWeight: FontWeight.w900, color: AppTheme.primaryLime)),
+                ),
+              ],
+            ),
+          );
+        } else {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => CategoryListingScreen(categoryName: '$label\'s Collection')));
+        }
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                padding: const EdgeInsets.all(2.5),
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF2E8A99), Color(0xFFECA04F)],
+                    begin: Alignment.topRight,
+                    end: Alignment.bottomLeft,
+                  ),
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                    image: DecorationImage(
+                      image: CachedNetworkImageProvider(imgUrl),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
               ),
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
-                  image: DecorationImage(
-                    image: CachedNetworkImageProvider(imgUrl),
-                    fit: BoxFit.cover,
+              if (isYou)
+                Positioned(
+                  bottom: -4,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: AppTheme.textDark,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                    child: const Icon(Icons.add, size: 10, color: Colors.white),
                   ),
+                ),
+              if (isVerified)
+                Positioned(
+                  bottom: 0,
+                  right: -4,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.verified,
+                      size: 14,
+                      color: Colors.green,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              fontWeight: isYou ? FontWeight.w700 : FontWeight.w600,
+              color: AppTheme.textDark,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryChips() {
+    final List<String> categories = ['All', 'New Arrived', 'Popular', 'Offer', 'Verified'];
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: categories.map((cat) {
+          final isSelected = cat == _selectedCategory;
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedCategory = cat;
+              });
+            },
+            child: Container(
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 6,
+              ),
+              decoration: BoxDecoration(
+                color: isSelected ? AppTheme.textDark : Colors.white,
+                borderRadius: BorderRadius.circular(100),
+                boxShadow: isSelected ? null : [
+                  BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4, offset: const Offset(0, 2))
+                ],
+              ),
+              child: Text(
+                cat,
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected ? Colors.white : AppTheme.textLight,
                 ),
               ),
             ),
-            if (isYou)
-              Positioned(
-                bottom: -4,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: AppTheme.textDark,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                  child: const Icon(Icons.add, size: 10, color: Colors.white),
-                ),
-              ),
-            if (isVerified)
-              Positioned(
-                bottom: 0,
-                right: -4,
-                child: Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.verified,
-                    size: 14,
-                    color: Colors.green,
-                  ),
-                ),
-              ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            fontSize: 13,
-            fontWeight: isYou ? FontWeight.w700 : FontWeight.w600,
-            color: AppTheme.textDark,
-          ),
-        ),
-      ],
+          );
+        }).toList(),
+      ),
     );
   }
 
@@ -384,50 +503,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryChips(BuildContext context) {
-    final List<String> categories = [
-      'All',
-      'New Arrived',
-      'Popular',
-      'Offer',
-      'Verified',
-    ];
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: categories.map((cat) {
-          final isSelected = cat == 'All';
-          return GestureDetector(
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => CategoryListingScreen(categoryName: cat)));
-            },
-            child: Container(
-              margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 6,
-              ), 
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppTheme.textDark
-                    : Colors.white, 
-                borderRadius: BorderRadius.circular(100),
-              ),
-              child: Text(
-                cat,
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  color: isSelected ? Colors.white : AppTheme.textLight,
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
   Widget _buildProductGrid(BuildContext context, List<dynamic> products) {
     if (products.isEmpty) {
       return const Center(child: Text("No products found"));
@@ -473,3 +548,4 @@ class HomeScreen extends StatelessWidget {
     );
   }
 }
+

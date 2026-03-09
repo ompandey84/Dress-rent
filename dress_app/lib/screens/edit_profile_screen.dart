@@ -7,6 +7,7 @@ import 'package:dress_app/widgets/custom_text_field.dart';
 import 'package:provider/provider.dart';
 import 'package:dress_app/services/app_state.dart';
 import 'package:dress_app/models/user_profile.dart';
+import 'package:dress_app/screens/change_password_screen.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({Key? key}) : super(key: key);
@@ -81,14 +82,45 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ),
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppTheme.textDark,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 3),
+                    GestureDetector(
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) => Container(
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                            ),
+                            padding: const EdgeInsets.all(24),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Change Profile Picture',
+                                  style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textDark),
+                                ),
+                                const SizedBox(height: 24),
+                                _buildPickerOption(FluentIcons.image_24_regular, 'Choose from Gallery', () => Navigator.pop(context)),
+                                const SizedBox(height: 16),
+                                _buildPickerOption(FluentIcons.camera_24_regular, 'Take a Photo', () => Navigator.pop(context)),
+                                const SizedBox(height: 16),
+                                _buildPickerOption(FluentIcons.delete_24_regular, 'Remove Photo', () => Navigator.pop(context), isDelete: true),
+                                const SizedBox(height: 24),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.textDark,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 3),
+                        ),
+                        child: const Icon(FluentIcons.camera_24_regular, color: Colors.white, size: 20),
                       ),
-                      child: const Icon(FluentIcons.camera_24_regular, color: Colors.white, size: 20),
                     ),
                   ],
                 ),
@@ -133,7 +165,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 const SizedBox(height: 16),
                   GestureDetector(
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Change password coming soon!')));
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangePasswordScreen()));
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -222,6 +254,33 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPickerOption(IconData icon, String title, VoidCallback onTap, {bool isDelete = false}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF6F8FA),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: isDelete ? Colors.red : AppTheme.textDark, size: 20),
+            const SizedBox(width: 16),
+            Text(
+              title,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: isDelete ? Colors.red : AppTheme.textDark,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

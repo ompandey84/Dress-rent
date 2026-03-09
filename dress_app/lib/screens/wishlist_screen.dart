@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dress_app/theme.dart';
 import 'package:dress_app/services/app_state.dart';
 import 'package:provider/provider.dart';
+import 'package:dress_app/widgets/product_card.dart';
 
 class WishlistScreen extends StatelessWidget {
   const WishlistScreen({super.key});
@@ -36,11 +36,11 @@ class WishlistScreen extends StatelessWidget {
               crossAxisCount: 2,
               crossAxisSpacing: 16,
               mainAxisSpacing: 24,
-              childAspectRatio: 0.6,
+              childAspectRatio: 0.5,
             ),
             itemCount: wishlistedProducts.length,
             itemBuilder: (context, index) {
-              return _buildWishlistCard(context, wishlistedProducts[index]);
+              return ProductCard(product: wishlistedProducts[index], imageHeight: 180);
             },
           ),
     );
@@ -67,78 +67,4 @@ class WishlistScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildWishlistCard(BuildContext context, dynamic product) {
-    String title = product.name;
-    String location = product.location;
-    String price = 'AED ${product.price.toStringAsFixed(2)}/day';
-    String imgUrl = product.images.isNotEmpty ? product.images.first : '';
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Stack(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: CachedNetworkImage(
-                  imageUrl: imgUrl,
-                  width: double.infinity,
-                  height: double.infinity,
-                  fit: BoxFit.cover,
-                  errorWidget: (context, url, error) => Container(color: Colors.grey[200]),
-                ),
-              ),
-              Positioned(
-                top: 12,
-                right: 12,
-                  child: GestureDetector(
-                    onTap: () {
-                      context.read<AppState>().toggleFavorite(product.id);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Removed from wishlist'),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        FluentIcons.heart_24_filled,
-                        color: Colors.redAccent,
-                        size: 16,
-                      ),
-                    ),
-                  ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          location,
-          style: GoogleFonts.inter(fontSize: 10, color: AppTheme.textLight, fontWeight: FontWeight.w600),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          title,
-          style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w800, color: AppTheme.textDark),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          price,
-          style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.primaryLime),
-        ),
-      ],
-    );
-  }
 }

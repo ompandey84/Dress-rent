@@ -3,6 +3,8 @@ import 'package:dress_app/models/order.dart';
 import 'package:dress_app/models/user_profile.dart';
 import 'package:dress_app/models/address.dart';
 import 'package:dress_app/models/notification_item.dart';
+import 'package:dress_app/models/chat_session.dart';
+import 'package:dress_app/models/chat_message.dart';
 
 class MockDataService {
   static final MockDataService _instance = MockDataService._internal();
@@ -21,6 +23,8 @@ class MockDataService {
     avatarUrl:
         'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=200&auto=format&fit=crop',
     isVendor: false,
+    reviewsCount: 84,
+    rating: 4.8,
     addresses: [
       Address(
         id: 'a1',
@@ -183,6 +187,29 @@ class MockDataService {
       timeText: 'Yesterday',
       type: NotificationType.promo,
       isRead: true,
+    ),
+  ];
+  
+  static final List<ChatSession> mockChatSessions = [
+    ChatSession(
+      id: 'c1',
+      peerName: 'Sara Ahmed',
+      peerAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop',
+      lastMessage: 'Is the hoodie still available for next weekend?',
+      lastMessageTime: DateTime.now().subtract(const Duration(minutes: 5)),
+      unreadCount: 1,
+      messages: [
+        ChatMessage(id: 'm1', senderId: 'c1', text: 'Hi! I saw your listing.', timestamp: DateTime.now().subtract(const Duration(hours: 1))),
+        ChatMessage(id: 'm2', senderId: 'c1', text: 'Is the hoodie still available for next weekend?', timestamp: DateTime.now().subtract(const Duration(minutes: 5))),
+      ],
+    ),
+    ChatSession(
+      id: 'c2',
+      peerName: 'David Lee',
+      peerAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop',
+      lastMessage: 'The fit was perfect, thanks!',
+      lastMessageTime: DateTime.now().subtract(const Duration(hours: 2)),
+      unreadCount: 0,
     ),
   ];
 }

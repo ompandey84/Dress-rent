@@ -5,6 +5,7 @@ import 'package:dress_app/theme.dart';
 import 'package:dress_app/widgets/custom_text_field.dart';
 import 'package:dress_app/screens/main_navigation.dart';
 import 'package:dress_app/screens/signup_screen.dart';
+import 'package:dress_app/screens/forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -36,11 +37,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _showComingSoon(String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$feature coming soon!')),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -155,7 +151,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
                     TextButton(
-                      onPressed: () => _showComingSoon('Password reset'),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
+                        );
+                      },
                       child: Text(
                         'Forgot password?',
                         style: GoogleFonts.inter(
@@ -218,11 +219,26 @@ class _LoginScreenState extends State<LoginScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildSocialButton('G', Colors.red, true, () => _showComingSoon('Google Sign In')),
+                    _buildSocialButton('G', Colors.red, true, () {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Logging in with Google...')));
+                      Future.delayed(const Duration(seconds: 1), () => Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (context) => const MainNavigation()),
+                      ));
+                    }),
                     const SizedBox(width: 16),
-                    _buildSocialButton(null, Colors.black, false, () => _showComingSoon('Apple Sign In'), icon: Icons.apple),
+                    _buildSocialButton(null, Colors.black, false, () {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Logging in with Apple...')));
+                      Future.delayed(const Duration(seconds: 1), () => Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (context) => const MainNavigation()),
+                      ));
+                    }, icon: Icons.apple),
                     const SizedBox(width: 16),
-                    _buildSocialButton('f', Colors.blue.shade800, false, () => _showComingSoon('Facebook Sign In')),
+                    _buildSocialButton('f', Colors.blue.shade800, false, () {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Logging in with Facebook...')));
+                      Future.delayed(const Duration(seconds: 1), () => Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (context) => const MainNavigation()),
+                      ));
+                    }),
                   ],
                 ),
                 
