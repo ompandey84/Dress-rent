@@ -3,21 +3,54 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dress_app/theme.dart';
-import 'package:dress_app/services/mock_data_service.dart';
+import 'package:dress_app/models/product.dart';
+import 'package:dress_app/services/database_service.dart';
 import 'package:dress_app/widgets/product_card.dart';
 
-class StoreDetailScreen extends StatelessWidget {
+class StoreDetailScreen extends StatefulWidget {
   final String storeName;
   const StoreDetailScreen({super.key, required this.storeName});
 
   @override
-  Widget build(BuildContext context) {
-    // Show only 4 mock products for the store
-    final storeProducts = MockDataService.mockProducts.take(4).toList();
+  State<StoreDetailScreen> createState() => _StoreDetailScreenState();
+}
 
+class _StoreDetailScreenState extends State<StoreDetailScreen> {
+  List<Product> _storeProducts = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchStoreProducts();
+  }
+
+  Future<void> _fetchStoreProducts() async {
+    try {
+      final db = DatabaseService();
+      // Fetch all products and filter by store name for now
+      final rawProducts = await db.getProducts();
+      final allProducts = rawProducts.map((p) => Product.fromJson(p)).toList();
+      
+      setState(() {
+        _storeProducts = allProducts.where((p) => p.storeName.toLowerCase() == widget.storeName.toLowerCase()).toList();
+        _isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Error fetching store products: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundLight,
-      body: CustomScrollView(
+      body: _isLoading 
+        ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryLime))
+        : CustomScrollView(
         slivers: [
           SliverAppBar(
             backgroundColor: AppTheme.backgroundLight,
@@ -60,7 +93,7 @@ class StoreDetailScreen extends StatelessWidget {
                           ),
                           child: Center(
                             child: Text(
-                              storeName.substring(0, 1).toUpperCase(),
+                              widget.storeName.isNotEmpty ? widget.storeName.substring(0, 1).toUpperCase() : 'S',
                               style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.w900, color: AppTheme.textDark),
                             ),
                           ),
@@ -72,7 +105,7 @@ class StoreDetailScreen extends StatelessWidget {
                             Row(
                               children: [
                                 Text(
-                                  storeName,
+                                  widget.storeName,
                                   style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white),
                                 ),
                                 const SizedBox(width: 6),
@@ -136,28 +169,40 @@ class StoreDetailScreen extends StatelessWidget {
             ),
           ),
           
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 24,
-                childAspectRatio: 0.5, // matches home screen ratio roughly
+          if (_storeProducts.isNotEmpty)
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 24,
+                  childAspectRatio: 0.5, // matches home screen ratio roughly
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    return ProductCard(product: _storeProducts[index], imageHeight: 180);
+                  },
+                  childCount: _storeProducts.length,
+                ),
               ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  return ProductCard(product: storeProducts[index], imageHeight: 180);
-                },
-                childCount: storeProducts.length,
+            )
+          else
+            SliverToBoxAdapter(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(40.0),
+                  child: Text(
+                    'No items available.',
+                    style: GoogleFonts.inter(color: AppTheme.textLight, fontSize: 16),
+                  ),
+                ),
               ),
             ),
-          ),
           
           const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
         ],
       ),
     );
   }
-
 }

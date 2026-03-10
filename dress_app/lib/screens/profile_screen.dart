@@ -13,6 +13,7 @@ import 'package:dress_app/services/app_state.dart';
 import 'package:dress_app/models/order.dart';
 import 'package:dress_app/screens/vendor/vendor_signup_screen.dart';
 import 'package:dress_app/screens/legal_content_screen.dart';
+import 'package:dress_app/services/auth_service.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -29,6 +30,10 @@ class ProfileScreen extends StatelessWidget {
       body: SafeArea(
         child: Consumer<AppState>(
           builder: (context, appState, child) {
+            if (appState.isLoading) {
+              return const Center(child: CircularProgressIndicator(color: AppTheme.primaryLime));
+            }
+
             final user = appState.currentUser;
             final inProgressOrders = appState.orders.where((o) => o.status != OrderStatus.delivered && o.status != OrderStatus.refunded).length;
             
@@ -275,9 +280,11 @@ class ProfileScreen extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: TextButton(
-                  onPressed: () {
-                    // Navigate back to login (mock)
-                    Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                  onPressed: () async {
+                    await AuthService().signOut();
+                    if (context.mounted) {
+                      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                    }
                   },
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),

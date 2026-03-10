@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:dress_app/theme.dart';
-import 'package:dress_app/services/mock_data_service.dart';
+import 'package:dress_app/models/product.dart';
+import 'package:dress_app/services/database_service.dart';
 import 'package:dress_app/screens/filters_bottom_sheet.dart';
 import 'package:dress_app/widgets/product_card.dart';
 
@@ -15,7 +16,44 @@ class CategoryListingScreen extends StatefulWidget {
 }
 
 class _CategoryListingScreenState extends State<CategoryListingScreen> {
-  final _products = MockDataService.mockProducts; // In real app, filter by categoryName
+  List<Product> _products = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCategoryProducts();
+  }
+
+  Future<void> _fetchCategoryProducts() async {
+    setState(() {
+      _isLoading = true;
+    });
+    
+    try {
+      final db = DatabaseService();
+      // Since our getProducts filters by categoryId not name,
+      // and we don't have exact category slugs yet, we'll fetch all and filter locally
+      final rawProducts = await db.getProducts();
+      final allProducts = rawProducts.map((p) => Product.fromJson(p)).toList();
+      
+      final String categoryLower = widget.categoryName.toLowerCase();
+      
+      setState(() {
+        if (categoryLower == 'view all') {
+           _products = allProducts;
+        } else {
+           _products = allProducts.where((p) => p.category.toLowerCase() == categoryLower).toList();
+        }
+        _isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Error fetching category products: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   void _showFilters() {
     showModalBottomSheet(
@@ -50,7 +88,9 @@ class _CategoryListingScreenState extends State<CategoryListingScreen> {
           const SizedBox(width: 8),
         ],
       ),
-      body: Column(
+      body: _isLoading 
+        ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryLime))
+        : Column(
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
@@ -75,7 +115,14 @@ class _CategoryListingScreenState extends State<CategoryListingScreen> {
             ),
           ),
           Expanded(
-            child: GridView.builder(
+            child: _products.isEmpty 
+              ? Center(
+                  child: Text(
+                    'No dresses found in ${widget.categoryName}.',
+                    style: GoogleFonts.inter(color: AppTheme.textLight, fontSize: 16),
+                  ),
+                )
+              : GridView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,

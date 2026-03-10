@@ -5,6 +5,7 @@ import 'package:dress_app/theme.dart';
 import 'package:dress_app/widgets/custom_text_field.dart';
 import 'package:dress_app/screens/main_navigation.dart';
 import 'package:dress_app/screens/legal_content_screen.dart';
+import 'package:dress_app/services/auth_service.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({Key? key}) : super(key: key);
@@ -19,10 +20,12 @@ class _SignupScreenState extends State<SignupScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final AuthService _authService = AuthService();
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _agreedToTerms = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -33,12 +36,47 @@ class _SignupScreenState extends State<SignupScreen> {
     super.dispose();
   }
 
-  void _navigateToHome(BuildContext context) {
-    if (_formKey.currentState!.validate()) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const MainNavigation()),
-        (route) => false,
+  Future<void> _handleSignup() async {
+    if (!_agreedToTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please agree to the Terms & Conditions')),
       );
+      return;
+    }
+
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+      
+      try {
+        await _authService.signUp(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+          fullName: _nameController.text.trim(),
+        );
+        if (mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const MainNavigation()),
+            (route) => false,
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString().replaceAll('Exception: Failed to sign up: ', '')),
+              backgroundColor: Colors.red,
+            )
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
     }
   }
 
@@ -229,15 +267,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: () {
-                      if (!_agreedToTerms) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please agree to the Terms & Conditions')),
-                        );
-                        return;
-                      }
-                      _navigateToHome(context);
-                    },
+                    onPressed: _isLoading ? null : _handleSignup,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryLime,
                       shape: RoundedRectangleBorder(
@@ -245,15 +275,24 @@ class _SignupScreenState extends State<SignupScreen> {
                       ),
                       elevation: 0,
                     ),
-                    child: Text(
-                      'SIGN UP',
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.textDark,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
+                    child: _isLoading
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            color: AppTheme.textDark,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text(
+                          'SIGN UP',
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: AppTheme.textDark,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
                   ),
                 ),
                 const SizedBox(height: 32),

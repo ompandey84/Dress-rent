@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:dress_app/models/product.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -7,12 +6,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:dress_app/theme.dart';
 import 'package:dress_app/services/app_state.dart';
-import 'package:dress_app/services/mock_data_service.dart';
 import 'package:dress_app/screens/notifications_screen.dart';
 import 'package:dress_app/screens/search_results_screen.dart';
 import 'package:dress_app/screens/category_listing_screen.dart';
 import 'package:dress_app/screens/filters_bottom_sheet.dart';
 import 'package:dress_app/widgets/product_card.dart';
+import 'package:dress_app/services/database_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -27,21 +26,16 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
-    final user = appState.currentUser;
-    final allProducts = MockDataService.mockProducts;
-    
-    // Filter products based on selected category
-    List<Product> products = allProducts;
-    if (_selectedCategory == 'New Arrived') {
-      products = allProducts.take(3).toList(); // Mock filtering
-    } else if (_selectedCategory == 'Popular') {
-      products = allProducts.where((p) => p.rating >= 4.5).toList();
-    } else if (_selectedCategory == 'Verified') {
-      products = allProducts.where((p) => p.storeName.contains('Design') || p.storeName.contains('Boutique')).toList();
-    } else if (_selectedCategory == 'Offer') {
-      products = allProducts.where((p) => p.price < 300).toList();
+    if (appState.isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(color: AppTheme.primaryLime),
+        ),
+      );
     }
 
+    final user = appState.currentUser;
+    
     return Scaffold(
       extendBodyBehindAppBar: true,
       body: Container(
@@ -75,7 +69,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 24),
                     _buildSectionTitle(context, 'New Arrived'),
                     const SizedBox(height: 16),
-                    _buildProductGrid(context, products),
+                    FutureBuilder<List<Map<String, dynamic>>>(
+                      future: _fetchProducts(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
+                        if (snapshot.hasError) {
+                          return Center(child: Text('Error loading products.'));
+                        }
+                        return _buildProductGrid(context, snapshot.data ?? []);
+                      },
+                    ),
                   ],
                 ),
               ),
@@ -84,6 +89,14 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchProducts() async {
+     // Fetch products using DatabaseService instead of MockDataService
+     // In a real app we would apply `_selectedCategory` logic to the DB call 
+     // For now, we fetch all from Supabase and parse/filter locally for simplicity
+     final db = DatabaseService();
+     return await db.getProducts();
   }
 
   Widget _buildHeader(BuildContext context, String userName, String? avatarUrl) {

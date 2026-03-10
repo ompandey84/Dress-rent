@@ -6,6 +6,7 @@ import 'package:dress_app/widgets/custom_text_field.dart';
 import 'package:dress_app/screens/main_navigation.dart';
 import 'package:dress_app/screens/signup_screen.dart';
 import 'package:dress_app/screens/forgot_password_screen.dart';
+import 'package:dress_app/services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -18,9 +19,11 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final AuthService _authService = AuthService();
 
   bool _rememberMe = true;
   bool _obscurePassword = true;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -29,15 +32,65 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _navigateToHome(BuildContext context) {
+  Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const MainNavigation()),
-      );
+      setState(() {
+        _isLoading = true;
+      });
+      
+      try {
+        await _authService.signIn(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const MainNavigation()),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString().replaceAll('Exception: Failed to sign in: ', '')),
+              backgroundColor: Colors.red,
+            )
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
     }
   }
 
-
+  Future<void> _handleGoogleLogin() async {
+    setState(() => _isLoading = true);
+    try {
+      await _authService.signInWithGoogle();
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const MainNavigation()),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+         ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString().replaceAll('Exception: ', '')),
+              backgroundColor: Colors.red,
+            )
+         );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -175,7 +228,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: () => _navigateToHome(context),
+                    onPressed: _isLoading ? null : _handleLogin,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryLime,
                       shape: RoundedRectangleBorder(
@@ -183,15 +236,24 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       elevation: 0,
                     ),
-                    child: Text(
-                      'CONTINUE',
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.textDark,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
+                    child: _isLoading 
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            color: AppTheme.textDark,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text(
+                          'CONTINUE',
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: AppTheme.textDark,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -219,25 +281,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildSocialButton('G', Colors.red, true, () {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Logging in with Google...')));
-                      Future.delayed(const Duration(seconds: 1), () => Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (context) => const MainNavigation()),
-                      ));
-                    }),
+                    _buildSocialButton('G', Colors.red, true, _isLoading ? () {} : _handleGoogleLogin),
                     const SizedBox(width: 16),
                     _buildSocialButton(null, Colors.black, false, () {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Logging in with Apple...')));
-                      Future.delayed(const Duration(seconds: 1), () => Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (context) => const MainNavigation()),
-                      ));
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Apple Login not fully configured yet')));
                     }, icon: Icons.apple),
                     const SizedBox(width: 16),
                     _buildSocialButton('f', Colors.blue.shade800, false, () {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Logging in with Facebook...')));
-                      Future.delayed(const Duration(seconds: 1), () => Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (context) => const MainNavigation()),
-                      ));
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Facebook Login not fully configured yet')));
                     }),
                   ],
                 ),

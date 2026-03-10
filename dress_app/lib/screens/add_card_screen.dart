@@ -72,8 +72,16 @@ class _AddCardScreenState extends State<AddCardScreen> {
         status: OrderStatus.preparing,
         imageUrl: widget.cartItems.isNotEmpty ? widget.cartItems.first.product.images.first : '',
       );
+
+      final orderItems = widget.cartItems.map((item) => {
+        'product_id': item.product.id,
+        'quantity': item.quantity,
+        'variant_color': item.selectedColor,
+        'variant_size': item.selectedSize,
+        'price_per_unit': item.product.price,
+      }).toList();
       
-      context.read<AppState>().addOrder(newOrder);
+      context.read<AppState>().addOrder(newOrder, orderItems);
       context.read<AppState>().clearCart();
 
       Navigator.pushAndRemoveUntil(

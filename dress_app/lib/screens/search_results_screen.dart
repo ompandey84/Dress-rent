@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:dress_app/theme.dart';
 import 'package:dress_app/models/product.dart';
-import 'package:dress_app/services/mock_data_service.dart';
+import 'package:dress_app/services/database_service.dart';
 import 'package:dress_app/widgets/product_card.dart';
 import 'package:dress_app/screens/filters_bottom_sheet.dart';
 
@@ -21,6 +21,8 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   String _currentSort = 'Popular';
   Map<String, dynamic>? _appliedFilters;
 
+  bool _isLoading = false;
+
   @override
   void initState() {
     super.initState();
@@ -28,37 +30,52 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     _filterProducts(widget.query);
   }
 
-  void _filterProducts(String query) {
+  Future<void> _filterProducts(String query) async {
     setState(() {
-      var filtered = List.from(MockDataService.mockProducts);
+      _isLoading = true;
+    });
 
+    try {
+      final db = DatabaseService();
+      List<Map<String, dynamic>> rawProducts;
+      
       if (query.isNotEmpty) {
-        final lowercaseQuery = query.toLowerCase();
-        filtered = filtered.where((p) {
-          return p.name.toLowerCase().contains(lowercaseQuery) || 
-                 p.category.toLowerCase().contains(lowercaseQuery);
-        }).toList();
+        rawProducts = await db.searchProducts(query);
+      } else {
+        rawProducts = await db.getProducts();
       }
 
+      var filtered = rawProducts.map((p) => Product.fromJson(p)).toList();
+
       if (_appliedFilters != null) {
-        final category = _appliedFilters!['category'] as String;
-        final priceRange = _appliedFilters!['priceRange'] as RangeValues;
-        final sizes = _appliedFilters!['sizes'] as List<String>;
+        final category = _appliedFilters!['category'] as String?;
+        final priceRange = _appliedFilters!['priceRange'] as RangeValues?;
+        final sizes = _appliedFilters!['sizes'] as List<String>?;
         
-        if (category != 'All') {
+        if (category != null && category != 'All') {
           filtered = filtered.where((p) => p.category == category).toList();
         }
         
-        filtered = filtered.where((p) => p.price >= priceRange.start && p.price <= priceRange.end).toList();
+        if (priceRange != null) {
+          filtered = filtered.where((p) => p.price >= priceRange.start && p.price <= priceRange.end).toList();
+        }
         
-        if (sizes.isNotEmpty) {
+        if (sizes != null && sizes.isNotEmpty) {
           filtered = filtered.where((p) => p.sizes.any((s) => sizes.contains(s))).toList();
         }
       }
 
-      _products = filtered.cast<Product>();
-      _applySort();
-    });
+      setState(() {
+        _products = filtered;
+        _applySort();
+        _isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Error searching products: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   void _applySort() {
@@ -190,19 +207,31 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
             
             // Grid
             Expanded(
-              child: GridView.builder(
-                padding: const EdgeInsets.all(24),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 24,
-                  childAspectRatio: 0.5,
-                ),
-                itemCount: _products.length,
-                itemBuilder: (context, index) {
-                  return ProductCard(product: _products[index], imageHeight: 180);
-                },
-              ),
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryLime))
+                  : _products.isEmpty
+                      ? Center(
+                          child: Text(
+                            'No dresses found.',
+                            style: GoogleFonts.inter(
+                              color: AppTheme.textLight,
+                              fontSize: 16,
+                            ),
+                          ),
+                        )
+                      : GridView.builder(
+                          padding: const EdgeInsets.all(24),
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 24,
+                            childAspectRatio: 0.5,
+                          ),
+                          itemCount: _products.length,
+                          itemBuilder: (context, index) {
+                            return ProductCard(product: _products[index], imageHeight: 180);
+                          },
+                        ),
             ),
           ],
         ),
