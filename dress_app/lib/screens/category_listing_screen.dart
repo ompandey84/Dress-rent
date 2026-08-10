@@ -40,10 +40,14 @@ class _CategoryListingScreenState extends State<CategoryListingScreen> {
       final String categoryLower = widget.categoryName.toLowerCase();
       
       setState(() {
-        if (categoryLower == 'view all') {
-           _products = allProducts;
+        if (categoryLower == 'all' ||
+            categoryLower == 'all items' ||
+            categoryLower == 'view all') {
+          _products = allProducts;
         } else {
-           _products = allProducts.where((p) => p.category.toLowerCase() == categoryLower).toList();
+          _products = allProducts
+              .where((p) => p.category.toLowerCase() == categoryLower)
+              .toList();
         }
         _isLoading = false;
       });

@@ -35,19 +35,19 @@ class _ShippingAddressScreenState extends State<ShippingAddressScreen> {
 
   void _detectLocation() async {
     setState(() => _isDetectingLocation = true);
-    
-    // Mock network/GPS delay
-    await Future.delayed(const Duration(seconds: 2));
-    
+
+    // Simulate GPS warm-up.
+    await Future.delayed(const Duration(milliseconds: 1200));
+
     if (mounted) {
       setState(() {
-        _addressController.text = '123 Sheikh Zayed Road, Downtown';
-        _cityController.text = 'Dubai';
-        _zipController.text = '00000';
+        _addressController.text = '123 MG Road';
+        _cityController.text = 'Bengaluru';
+        _zipController.text = '560001';
         _isDetectingLocation = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Location detected: Dubai, UAE')),
+        const SnackBar(content: Text('Location detected — Bengaluru, India')),
       );
     }
   }
@@ -165,15 +165,15 @@ class _ShippingAddressScreenState extends State<ShippingAddressScreen> {
                               const SizedBox(height: 4),
                               Row(
                                 children: [
-                                  Text('AED ${widget.product.price.toStringAsFixed(2)}', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: AppTheme.primaryLime)),
+                                  Text('₹ ${widget.product.price.toStringAsFixed(0)} / day', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: AppTheme.primaryLime)),
                                   const SizedBox(width: 8),
-                                  if (widget.product.originalPrice > 0.0) 
+                                  if (widget.product.originalPrice > 0.0)
                                     Text(
-                                      'AED ${widget.product.originalPrice.toStringAsFixed(2)}', 
+                                      '₹ ${widget.product.originalPrice.toStringAsFixed(0)}',
                                       style: GoogleFonts.inter(
-                                        fontSize: 12, 
-                                        color: AppTheme.textLight, 
-                                        decoration: TextDecoration.lineThrough
+                                        fontSize: 12,
+                                        color: AppTheme.textLight,
+                                        decoration: TextDecoration.lineThrough,
                                       ),
                                     ),
                                 ],

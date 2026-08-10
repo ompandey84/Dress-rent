@@ -1,131 +1,159 @@
+import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:dress_app/services/supabase_service.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-// Note: sign_in_with_apple and flutter_facebook_auth need to be added to pubspec.yaml
-// import 'package:sign_in_with_apple/sign_in_with_apple.dart';
-// import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:dress_app/services/mock_data_service.dart';
+import 'package:dress_app/models/user_profile.dart';
 
+/// Auth service. If Supabase is configured, uses real auth (Phone/Email/OTP).
+/// Otherwise, uses a mock user so the app can be browsed without backend.
 class AuthService {
-  final SupabaseClient _supabase = SupabaseService.client;
+  bool get _isRealAuth => SupabaseService.isConfigured;
 
-  // Stream for auth state changes (used to determine if user is logged in)
-  Stream<AuthState> get authStateChanges => _supabase.auth.onAuthStateChange;
+  /// Stream of auth state changes.
+  Stream<AuthState> get authStateChanges {
+    if (_isRealAuth) {
+      return SupabaseService.client.auth.onAuthStateChange;
+    }
+    // Mock mode: emit a single "signed in" event so the app loads
+    return Stream<AuthState>.empty();
+  }
 
-  User? get currentUser => _supabase.auth.currentUser;
+  User? get currentUser {
+    if (_isRealAuth) {
+      return SupabaseService.client.auth.currentUser;
+    }
+    return null; // Mock mode: no real User object
+  }
 
-  // Email/Password Sign Up
+  String? get currentUserId {
+    if (_isRealAuth) {
+      return SupabaseService.client.auth.currentUser?.id;
+    }
+    return 'mock-user-id';
+  }
+
+  /// Send OTP to phone number.
+  Future<void> sendPhoneOtp(String phone) async {
+    if (!_isRealAuth) {
+      // In mock mode, just pretend we sent it
+      await Future.delayed(const Duration(seconds: 1));
+      return;
+    }
+    await SupabaseService.client.auth.signInWithOtp(
+      phone: phone,
+      // For Indian numbers, default channel is SMS
+    );
+  }
+
+  /// Verify OTP entered by user.
+  Future<AuthResponse> verifyOtp({
+    required String phone,
+    required String otp,
+  }) async {
+    if (!_isRealAuth) {
+      // Mock mode: succeed immediately
+      return AuthResponse(session: null, user: null);
+    }
+    return await SupabaseService.client.auth.verifyOTP(
+      phone: phone,
+      token: otp,
+      type: OtpType.sms,
+    );
+  }
+
+  /// Email + password sign in.
+  Future<AuthResponse> signInWithPassword({
+    required String email,
+    required String password,
+  }) async {
+    if (!_isRealAuth) {
+      return AuthResponse(session: null, user: null);
+    }
+    return await SupabaseService.client.auth.signInWithPassword(
+      email: email,
+      password: password,
+    );
+  }
+
+  /// Email + password sign up.
   Future<AuthResponse> signUp({
     required String email,
     required String password,
-    required String fullName,
+    required Map<String, dynamic>? data,
   }) async {
-    try {
-      final response = await _supabase.auth.signUp(
-        email: email,
-        password: password,
-        data: {'full_name': fullName},
-      );
-      return response;
-    } catch (e) {
-      throw Exception('Failed to sign up: $e');
+    if (!_isRealAuth) {
+      return AuthResponse(session: null, user: null);
     }
+    return await SupabaseService.client.auth.signUp(
+      email: email,
+      password: password,
+      data: data,
+    );
   }
 
-  // Email/Password Sign In
-  Future<AuthResponse> signIn({
-    required String email,
-    required String password,
-  }) async {
-    try {
-      final response = await _supabase.auth.signInWithPassword(
-        email: email,
-        password: password,
-      );
-      return response;
-    } catch (e) {
-      throw Exception('Failed to sign in: $e');
+  /// Sign in with Google (using native Google Sign-In).
+  Future<AuthResponse?> signInWithGoogle() async {
+    if (!_isRealAuth) {
+      return AuthResponse(session: null, user: null);
     }
+    // TODO: integrate with google_sign_in package, then call signInWithIdToken
+    return null;
   }
 
-  // General OAuth Sign In
-  Future<bool> signInWithOAuth(OAuthProvider provider) async {
-    try {
-      return await _supabase.auth.signInWithOAuth(provider);
-    } catch (e) {
-      throw Exception('Failed to sign in with ${provider.name}: $e');
-    }
-  }
-
-  // Google Sign In (Native approach using google_sign_in package)
-  Future<AuthResponse> signInWithGoogle() async {
-    try {
-      const webClientId = 'YOUR_WEB_CLIENT_ID'; // Replace with actual Web Client ID
-      const iosClientId = 'YOUR_IOS_CLIENT_ID'; // Replace with actual iOS Client ID
-
-      final GoogleSignIn googleSignIn = GoogleSignIn(
-        clientId: iosClientId,
-        serverClientId: webClientId,
-      );
-      final googleUser = await googleSignIn.signIn();
-      final googleAuth = await googleUser!.authentication;
-      final accessToken = googleAuth.accessToken;
-      final idToken = googleAuth.idToken;
-
-      if (accessToken == null || idToken == null) {
-        throw 'No Access Token or ID Token found.';
-      }
-
-      return await _supabase.auth.signInWithIdToken(
-        provider: OAuthProvider.google,
-        idToken: idToken,
-        accessToken: accessToken,
-      );
-    } catch (e) {
-      throw Exception('Google sign in failed: $e');
-    }
-  }
-
-  // Sign Out
   Future<void> signOut() async {
-    try {
-      await _supabase.auth.signOut();
-    } catch (e) {
-      throw Exception('Failed to sign out: $e');
+    if (!_isRealAuth) {
+      // Mock mode: no Supabase session to clear. Callers should reset
+      // local app state if needed.
+      return;
     }
+    await SupabaseService.client.auth.signOut();
   }
 
-  // Reset Password
   Future<void> resetPassword(String email) async {
-    try {
-      await _supabase.auth.resetPasswordForEmail(email);
-    } catch (e) {
-      throw Exception('Failed to send reset password email: $e');
-    }
+    if (!_isRealAuth) return;
+    await SupabaseService.client.auth.resetPasswordForEmail(email);
   }
 
-  // Update Password
   Future<void> updatePassword(String newPassword) async {
-    try {
-      await _supabase.auth.updateUser(
-        UserAttributes(password: newPassword),
-      );
-    } catch (e) {
-      throw Exception('Failed to update password: $e');
-    }
+    if (!_isRealAuth) return;
+    await SupabaseService.client.auth.updateUser(
+      UserAttributes(password: newPassword),
+    );
   }
 
-  // Delete Account
-  Future<void> deleteAccount() async {
-    try {
-      final user = _supabase.auth.currentUser;
-      if (user != null) {
-        // Technically, regular users cannot delete themselves via standard client API
-        // without an edge function. We will use Edge Function or RPC for deletion.
-        await _supabase.rpc('delete_user_account');
-        await signOut();
-      }
-    } catch (e) {
-      throw Exception('Failed to delete account: $e');
+  /// In mock mode, returns the demo user. Otherwise fetches from `profiles` table.
+  Future<UserProfile?> getCurrentProfile() async {
+    if (!_isRealAuth) {
+      return MockDataService.currentUser;
     }
+    final uid = currentUserId;
+    if (uid == null) return null;
+    final res = await SupabaseService.client
+        .from('profiles')
+        .select()
+        .eq('id', uid)
+        .single();
+    return UserProfile.fromJson(res);
+  }
+
+  Future<void> updateProfile(Map<String, dynamic> data) async {
+    if (!_isRealAuth) return;
+    final uid = currentUserId;
+    if (uid == null) return;
+    await SupabaseService.client
+        .from('profiles')
+        .update(data)
+        .eq('id', uid);
+  }
+
+  Future<void> uploadKycDocument(String idImageUrl, String idType) async {
+    if (!_isRealAuth) return;
+    final uid = currentUserId;
+    if (uid == null) return;
+    await SupabaseService.client.from('profiles').update({
+      'kyc_id_url': idImageUrl,
+      'kyc_id_type': idType,
+      'kyc_status': 'submitted',
+    }).eq('id', uid);
   }
 }

@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 enum OrderStatus { requested, preparing, outForDelivery, delivered, refunded, cancelled }
 
 class Order {
+  /// The raw Supabase UUID. Use this for service calls.
   final String id;
+  /// Human-friendly display like "#ORD-9821". Used for UI.
+  final String displayId;
   final String orderNumber;
   final String userId;
   final String storeId;
@@ -30,6 +33,7 @@ class Order {
 
   Order({
     required this.id,
+    this.displayId = '',
     this.orderNumber = '',
     this.userId = '',
     this.storeId = '',

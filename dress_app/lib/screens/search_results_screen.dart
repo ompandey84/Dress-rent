@@ -38,7 +38,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     try {
       final db = DatabaseService();
       List<Map<String, dynamic>> rawProducts;
-      
+
       if (query.isNotEmpty) {
         rawProducts = await db.searchProducts(query);
       } else {
@@ -51,23 +51,37 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
         final category = _appliedFilters!['category'] as String?;
         final priceRange = _appliedFilters!['priceRange'] as RangeValues?;
         final sizes = _appliedFilters!['sizes'] as List<String>?;
-        
+
         if (category != null && category != 'All') {
-          filtered = filtered.where((p) => p.category == category).toList();
+          filtered = filtered
+              .where((p) => p.category.toLowerCase() == category.toLowerCase())
+              .toList();
         }
-        
+
         if (priceRange != null) {
-          filtered = filtered.where((p) => p.price >= priceRange.start && p.price <= priceRange.end).toList();
+          filtered = filtered
+              .where((p) => p.price >= priceRange.start && p.price <= priceRange.end)
+              .toList();
         }
-        
+
         if (sizes != null && sizes.isNotEmpty) {
-          filtered = filtered.where((p) => p.sizes.any((s) => sizes.contains(s))).toList();
+          filtered = filtered
+              .where((p) => p.sizes.any((s) => sizes.contains(s)))
+              .toList();
         }
+      }
+
+      // Apply sort
+      if (_currentSort == 'Popular') {
+        filtered.sort((a, b) => b.rating.compareTo(a.rating));
+      } else if (_currentSort == 'Price: Low to High') {
+        filtered.sort((a, b) => a.price.compareTo(b.price));
+      } else if (_currentSort == 'Price: High to Low') {
+        filtered.sort((a, b) => b.price.compareTo(a.price));
       }
 
       setState(() {
         _products = filtered;
-        _applySort();
         _isLoading = false;
       });
     } catch (e) {
@@ -76,18 +90,6 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
         _isLoading = false;
       });
     }
-  }
-
-  void _applySort() {
-    setState(() {
-      if (_currentSort == 'Popular') {
-        _products.sort((a, b) => b.rating.compareTo(a.rating));
-      } else if (_currentSort == 'Price: Low to High') {
-        _products.sort((a, b) => a.price.compareTo(b.price));
-      } else if (_currentSort == 'Price: High to Low') {
-        _products.sort((a, b) => b.price.compareTo(a.price));
-      }
-    });
   }
 
   @override
@@ -105,7 +107,9 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     );
 
     if (result != null && result is Map<String, dynamic>) {
-      _appliedFilters = result;
+      setState(() {
+        _appliedFilters = result;
+      });
       _filterProducts(_searchController.text);
     }
   }
@@ -182,7 +186,13 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                     onSelected: (String value) {
                       setState(() {
                         _currentSort = value;
-                        _applySort();
+                        if (_currentSort == 'Popular') {
+                          _products.sort((a, b) => b.rating.compareTo(a.rating));
+                        } else if (_currentSort == 'Price: Low to High') {
+                          _products.sort((a, b) => a.price.compareTo(b.price));
+                        } else if (_currentSort == 'Price: High to Low') {
+                          _products.sort((a, b) => b.price.compareTo(a.price));
+                        }
                       });
                     },
                     itemBuilder: (context) => [

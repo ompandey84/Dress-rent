@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:provider/provider.dart';
 import 'package:dress_app/theme.dart';
 import 'package:dress_app/widgets/custom_text_field.dart';
 import 'package:dress_app/screens/main_navigation.dart';
 import 'package:dress_app/screens/signup_screen.dart';
 import 'package:dress_app/screens/forgot_password_screen.dart';
 import 'package:dress_app/services/auth_service.dart';
+import 'package:dress_app/services/app_state.dart';
+import 'package:dress_app/models/user_profile.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -37,13 +40,30 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         _isLoading = true;
       });
-      
+
       try {
-        await _authService.signIn(
+        await _authService.signInWithPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
         if (mounted) {
+          final appState = context.read<AppState>();
+          await appState.refreshProfile();
+          // If we couldn't hydrate a real profile (mock / no DB),
+          // synthesize a local user from the email so the rest of the
+          // app knows we're authenticated.
+          if (appState.isGuest) {
+            await appState.setAuthenticated(UserProfile(
+              id: 'local-${_emailController.text.trim()}',
+              name: _emailController.text.trim().split('@').first,
+              email: _emailController.text.trim(),
+              phone: '',
+              avatarUrl: '',
+              isVendor: false,
+              isOnboarded: true,
+            ));
+          }
+          if (!mounted) return;
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const MainNavigation()),
           );
@@ -52,7 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(e.toString().replaceAll('Exception: Failed to sign in: ', '')),
+              content: Text(e.toString().replaceAll('Exception: ', '')),
               backgroundColor: Colors.red,
             )
           );
@@ -91,6 +111,20 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     }
   }
+
+  Future<void> _handleContinueAsGuest() async {
+    setState(() => _isLoading = true);
+    try {
+      await context.read<AppState>().continueAsGuest();
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const MainNavigation()),
+        (route) => false,
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -108,24 +142,24 @@ class _LoginScreenState extends State<LoginScreen> {
                 Text(
                   'WELCOME BACK',
                   style: GoogleFonts.inter(
-                    fontSize: 28,
+                    fontSize: 18,
                     fontWeight: FontWeight.w900,
                     color: AppTheme.textDark,
-                    letterSpacing: -0.5,
+                    letterSpacing: -0.4,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 6),
                 Text(
-                  'Enter your email address\nfor login',
+                  'Sign in, or browse as guest',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
                     color: AppTheme.textLight,
-                    height: 1.5,
+                    height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 48),
+                const SizedBox(height: 24),
 
                 // Inputs
                 CustomTextField(
@@ -226,7 +260,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Continue Button
                 SizedBox(
                   width: double.infinity,
-                  height: 56,
+                  height: 50,
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleLogin,
                     style: ElevatedButton.styleFrom(
@@ -236,10 +270,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       elevation: 0,
                     ),
-                    child: _isLoading 
+                    child: _isLoading
                       ? const SizedBox(
-                          height: 24,
-                          width: 24,
+                          height: 20,
+                          width: 20,
                           child: CircularProgressIndicator(
                             color: AppTheme.textDark,
                             strokeWidth: 2,
@@ -248,7 +282,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       : Text(
                           'CONTINUE',
                           style: GoogleFonts.inter(
-                            fontSize: 16,
+                            fontSize: 13,
                             fontWeight: FontWeight.w800,
                             color: AppTheme.textDark,
                             letterSpacing: 0.5,
@@ -256,7 +290,35 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 12),
+
+                // Continue as guest
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: OutlinedButton(
+                    onPressed: _isLoading ? null : _handleContinueAsGuest,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.textDark,
+                      side: BorderSide(
+                        color: AppTheme.textLight.withOpacity(0.3),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                    ),
+                    child: Text(
+                      'CONTINUE AS GUEST',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.textDark,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
 
                 // Or Separator
                 Row(
@@ -283,13 +345,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     _buildSocialButton('G', Colors.red, true, _isLoading ? () {} : _handleGoogleLogin),
                     const SizedBox(width: 16),
-                    _buildSocialButton(null, Colors.black, false, () {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Apple Login not fully configured yet')));
-                    }, icon: Icons.apple),
+                    _buildSocialButton(null, Colors.black, false, null, icon: Icons.apple, disabled: true),
                     const SizedBox(width: 16),
-                    _buildSocialButton('f', Colors.blue.shade800, false, () {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Facebook Login not fully configured yet')));
-                    }),
+                    _buildSocialButton('f', Colors.blue.shade800, false, null, disabled: true),
                   ],
                 ),
                 
@@ -332,36 +390,39 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildSocialButton(String? label, Color iconColor, bool isGoogle, VoidCallback onTap, {IconData? icon}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 56,
-        height: 56,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-          border: Border.all(color: AppTheme.textLight.withOpacity(0.1)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.02),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        alignment: Alignment.center,
-        child: icon != null 
-          ? Icon(icon, color: iconColor, size: 30)
-          : Text(
-              label ?? '',
-              style: TextStyle(
-                fontSize: isGoogle ? 24 : 28,
-                fontWeight: FontWeight.bold,
-                color: iconColor,
-                fontFamily: isGoogle ? 'GoogleSans' : null,
+  Widget _buildSocialButton(String? label, Color iconColor, bool isGoogle, VoidCallback? onTap, {IconData? icon, bool disabled = false}) {
+    return Opacity(
+      opacity: disabled ? 0.35 : 1.0,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            border: Border.all(color: AppTheme.textLight.withOpacity(0.1)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.02),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
-            ),
+            ],
+          ),
+          alignment: Alignment.center,
+          child: icon != null
+              ? Icon(icon, color: iconColor, size: 30)
+              : Text(
+                  label ?? '',
+                  style: TextStyle(
+                    fontSize: isGoogle ? 24 : 28,
+                    fontWeight: FontWeight.bold,
+                    color: iconColor,
+                    fontFamily: isGoogle ? 'GoogleSans' : null,
+                  ),
+                ),
+        ),
       ),
     );
   }

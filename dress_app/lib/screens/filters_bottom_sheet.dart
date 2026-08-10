@@ -12,14 +12,14 @@ class FiltersBottomSheet extends StatefulWidget {
 
 class _FiltersBottomSheetState extends State<FiltersBottomSheet> {
   // Mock filter state
-  RangeValues _priceRange = const RangeValues(100, 1500);
-  String _selectedCategory = 'Dresses';
-  final List<String> _categories = ['All', 'Dresses', 'Suits', 'Accessories', 'Traditional'];
-  
-  final List<String> _selectedSizes = ['S', 'M'];
+  RangeValues _priceRange = const RangeValues(100, 5000);
+  String _selectedCategory = 'All';
+  final List<String> _categories = ['All', 'Streetwear', 'Formal', 'Casual'];
+
+  final List<String> _selectedSizes = [];
   final List<String> _sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
-  final List<String> _selectedBrands = ['ZARA', 'H&M'];
+  final List<String> _selectedBrands = [];
   final List<String> _brands = ['ZARA', 'H&M', 'Gucci', 'Prada', 'Mango', 'Givenchy'];
 
   @override
@@ -97,7 +97,7 @@ class _FiltersBottomSheetState extends State<FiltersBottomSheet> {
                     children: [
                       _buildSectionTitle('Price Range'),
                       Text(
-                        'AED ${_priceRange.start.toInt()} - AED ${_priceRange.end.toInt()}',
+                        '₹ ${_priceRange.start.toInt()} - ₹ ${_priceRange.end.toInt()}',
                         style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.primaryLime),
                       ),
                     ],

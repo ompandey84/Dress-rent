@@ -43,3 +43,13 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local environment / secrets — keep these out of version control
+.env
+.env.*
+!.env.example
+
+# Android build output
+android/build/
+android/.gradle/
+android/local.properties

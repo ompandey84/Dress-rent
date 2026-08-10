@@ -42,7 +42,7 @@ class LegalContentScreen extends StatelessWidget {
             const SizedBox(height: 40),
             Center(
               child: Text(
-                'Version 1.0.4 (UAE)',
+                'Version 1.0.4 (India)',
                 style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textLight),
               ),
             ),

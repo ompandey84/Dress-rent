@@ -41,17 +41,21 @@ class _AiChatScreenState extends State<AiChatScreen> {
     Future.delayed(const Duration(milliseconds: 1500), () {
       if (!mounted) return;
       
-      String reply = "I'm sorry, I'm just a simulated AI assistant for this prototype. I can't actually do that yet!";
+      String reply = "I'm your Dress assistant — I can help you find outfits, explain the rental process, or guide you through the app. Try asking about weddings, returns, or discounts!";
       final lowerText = text.toLowerCase();
-      
+
       if (lowerText.contains('track') || lowerText.contains('order')) {
-        reply = "I can help with that. Please go to 'My Orders' in your profile to track your recent rentals, or provide your order ID here.";
+        reply = "Open the 'My Rentals' tab in your profile to track all your orders in real time — pickup, delivery, return, and refund status are all there.";
       } else if (lowerText.contains('wedding') || lowerText.contains('recommend')) {
-        reply = "For a wedding, I highly recommend our premium gowns and traditional wear. Our 'Ethnic' category has some beautiful options arriving this week!";
-      } else if (lowerText.contains('discount')) {
-        reply = "We currently have a 20% off promotion for first-time renters using the code FIRST20 at checkout.";
-      } else if (lowerText.contains('process') || lowerText.contains('how')) {
-        reply = "It's simple! Pick a dress, select your dates, wear it, and return it in the prepaid package we provide. We handle all the dry cleaning.";
+        reply = "For a wedding guest look, try our 'Wedding Guest Edit' collection on the home page — sarees, lehengas, and gowns curated for Indian weddings.";
+      } else if (lowerText.contains('discount') || lowerText.contains('promo') || lowerText.contains('coupon')) {
+        reply = "Use DRESS20 for 20% off your rental fee, or FIRST50 for ₹50 off your first order. You can apply them on the booking summary screen.";
+      } else if (lowerText.contains('process') || lowerText.contains('how') || lowerText.contains('work')) {
+        reply = "It's simple: pick a dress, choose your dates, pay securely via UPI/card, wear it, then return it on the return date. We handle dry-cleaning and the deposit refund within 24 hours of return.";
+      } else if (lowerText.contains('deposit') || lowerText.contains('refund')) {
+        reply = "Your security deposit is locked in your wallet when you book and is automatically refunded 24 hours after the lender accepts the returned item — minus any damage claim.";
+      } else if (lowerText.contains('cancel')) {
+        reply = "You can cancel for free up to 48 hours before pickup. Within 48 hours a 20% processing fee applies. After the item is shipped, no refund is possible.";
       }
 
       setState(() {
@@ -146,7 +150,10 @@ class _AiChatScreenState extends State<AiChatScreen> {
                     GestureDetector(
                       onTap: () {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Listening...', style: GoogleFonts.inter())),
+                          const SnackBar(
+                            content: Text('Voice input is coming soon — type your question for now.'),
+                            duration: Duration(seconds: 2),
+                          ),
                         );
                       },
                       child: const Icon(FluentIcons.mic_24_regular, color: AppTheme.textLight),

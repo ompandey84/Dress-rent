@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:dress_app/theme.dart';
+import 'package:dress_app/services/auth_service.dart';
 import 'package:dress_app/widgets/custom_text_field.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
@@ -15,6 +16,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final _currentController = TextEditingController();
   final _newController = TextEditingController();
   final _confirmController = TextEditingController();
+  bool _saving = false;
 
   @override
   void dispose() {
@@ -24,25 +26,44 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     super.dispose();
   }
 
-  void _handleSave() {
+  Future<void> _handleSave() async {
     if (_newController.text != _confirmController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Passwords do not match')),
       );
       return;
     }
-
     if (_newController.text.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Password must be at least 6 characters')),
       );
       return;
     }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Password updated successfully')),
-    );
-    Navigator.pop(context);
+    setState(() => _saving = true);
+    try {
+      // The current Supabase user can re-auth to change password. We pass
+      // the new password through to AuthService.
+      await AuthService().updatePassword(_newController.text);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Password updated successfully'),
+          backgroundColor: AppTheme.success,
+        ),
+      );
+      Navigator.pop(context);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not update password: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   @override
@@ -91,21 +112,28 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
-                onPressed: _handleSave,
+                onPressed: _saving ? null : _handleSave,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.textDark,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
                   elevation: 0,
                 ),
-                child: Text(
-                  'UPDATE PASSWORD',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    letterSpacing: 1.0,
-                  ),
-                ),
+                child: _saving
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
+                      )
+                    : Text(
+                        'UPDATE PASSWORD',
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
               ),
             ),
           ],

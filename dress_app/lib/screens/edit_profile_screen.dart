@@ -1,11 +1,15 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:dress_app/theme.dart';
 import 'package:dress_app/widgets/custom_text_field.dart';
 import 'package:provider/provider.dart';
 import 'package:dress_app/services/app_state.dart';
+import 'package:dress_app/services/auth_service.dart';
+import 'package:dress_app/services/storage_service.dart';
 import 'package:dress_app/models/user_profile.dart';
 import 'package:dress_app/screens/change_password_screen.dart';
 
@@ -42,6 +46,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = context.watch<AppState>().currentUser;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -54,7 +59,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
         title: Text(
           'EDIT PROFILE',
-          style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: AppTheme.textDark, letterSpacing: 1.0),
+          style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w800, color: AppTheme.textDark, letterSpacing: 1.0),
         ),
       ),
       body: Stack(
@@ -74,44 +79,29 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(color: AppTheme.primaryLime, width: 3),
-                        image: const DecorationImage(
-                          image: CachedNetworkImageProvider(
-                            'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=200&auto=format&fit=crop',
-                          ),
-                          fit: BoxFit.cover,
-                        ),
+                        image: currentUser.avatarUrl.isNotEmpty
+                            ? DecorationImage(
+                                image: CachedNetworkImageProvider(currentUser.avatarUrl),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
+                        color: AppTheme.primaryLime.withOpacity(0.2),
                       ),
+                      child: currentUser.avatarUrl.isEmpty
+                          ? Center(
+                              child: Text(
+                                currentUser.name.isNotEmpty ? currentUser.name[0].toUpperCase() : '?',
+                                style: GoogleFonts.inter(
+                                  fontSize: 48,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppTheme.textDark,
+                                ),
+                              ),
+                            )
+                          : null,
                     ),
                     GestureDetector(
-                      onTap: () {
-                        showModalBottomSheet(
-                          context: context,
-                          backgroundColor: Colors.transparent,
-                          builder: (context) => Container(
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                            ),
-                            padding: const EdgeInsets.all(24),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'Change Profile Picture',
-                                  style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textDark),
-                                ),
-                                const SizedBox(height: 24),
-                                _buildPickerOption(FluentIcons.image_24_regular, 'Choose from Gallery', () => Navigator.pop(context)),
-                                const SizedBox(height: 16),
-                                _buildPickerOption(FluentIcons.camera_24_regular, 'Take a Photo', () => Navigator.pop(context)),
-                                const SizedBox(height: 16),
-                                _buildPickerOption(FluentIcons.delete_24_regular, 'Remove Photo', () => Navigator.pop(context), isDelete: true),
-                                const SizedBox(height: 24),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
+                      onTap: () => _showAvatarPicker(context),
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
@@ -283,5 +273,97 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
       ),
     );
+  }
+}
+
+extension _EditProfileActions on _EditProfileScreenState {
+  Future<void> _showAvatarPicker(BuildContext context) async {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetCtx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Change Profile Picture',
+                  style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textDark)),
+              const SizedBox(height: 24),
+              _buildPicker(sheetCtx, FluentIcons.image_24_regular, 'Choose from Gallery', () async {
+                Navigator.pop(sheetCtx);
+                final f = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 90);
+                if (f != null && context.mounted) await _updateAvatar(File(f.path));
+              }),
+              const SizedBox(height: 16),
+              _buildPicker(sheetCtx, FluentIcons.camera_24_regular, 'Take a Photo', () async {
+                Navigator.pop(sheetCtx);
+                final f = await ImagePicker().pickImage(source: ImageSource.camera, imageQuality: 90);
+                if (f != null && context.mounted) await _updateAvatar(File(f.path));
+              }),
+              const SizedBox(height: 16),
+              _buildPicker(sheetCtx, FluentIcons.delete_24_regular, 'Remove Photo', () async {
+                Navigator.pop(sheetCtx);
+                await AuthService().updateProfile({'avatar_url': ''});
+                if (context.mounted) {
+                  await context.read<AppState>().refreshProfile();
+                }
+              }, isDelete: true),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPicker(BuildContext context, IconData icon, String title, VoidCallback onTap, {bool isDelete = false}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF6F8FA),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: isDelete ? Colors.red : AppTheme.textDark, size: 20),
+            const SizedBox(width: 16),
+            Text(
+              title,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: isDelete ? Colors.red : AppTheme.textDark,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _updateAvatar(File file) async {
+    try {
+      final userId = context.read<AppState>().currentUser.id;
+      final url = await StorageService().uploadAvatar(file, userId);
+      await AuthService().updateProfile({'avatar_url': url});
+      if (context.mounted) {
+        await context.read<AppState>().refreshProfile();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile picture updated'), backgroundColor: AppTheme.success),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not update photo: $e')),
+        );
+      }
+    }
   }
 }

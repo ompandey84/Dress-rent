@@ -66,7 +66,9 @@ class _StoreDetailScreenState extends State<StoreDetailScreen> {
                 fit: StackFit.expand,
                 children: [
                   CachedNetworkImage(
-                    imageUrl: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?q=80&w=800&auto=format&fit=crop',
+                    imageUrl: _storeProducts.isNotEmpty && _storeProducts.first.images.isNotEmpty
+                        ? _storeProducts.first.images.first
+                        : 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?q=80&w=800&auto=format&fit=crop',
                     fit: BoxFit.cover,
                   ),
                   Container(
@@ -117,7 +119,10 @@ class _StoreDetailScreenState extends State<StoreDetailScreen> {
                               children: [
                                 const Icon(Icons.star, size: 14, color: Colors.amber),
                                 const SizedBox(width: 4),
-                                Text('4.9 (1.2k reviews)', style: GoogleFonts.inter(fontSize: 12, color: Colors.white70)),
+                                Text(
+                                  '${widget.storeName} ${_storeProducts.length} items',
+                                  style: GoogleFonts.inter(fontSize: 12, color: Colors.white70),
+                                ),
                               ],
                             ),
                           ],
@@ -144,7 +149,12 @@ class _StoreDetailScreenState extends State<StoreDetailScreen> {
                         children: [
                           Text('Store Location', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textLight)),
                           const SizedBox(height: 4),
-                          Text('Dubai Marina Mall, Level 1', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textDark)),
+                          Text(
+                            _storeProducts.isNotEmpty && _storeProducts.first.location.isNotEmpty
+                                ? _storeProducts.first.location
+                                : 'India',
+                            style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textDark),
+                          ),
                         ],
                       ),
                       Container(

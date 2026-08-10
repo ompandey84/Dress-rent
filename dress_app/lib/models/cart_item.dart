@@ -48,6 +48,17 @@ class CartItem {
     );
   }
 
+  String get rentalDates {
+    final start = '${_monthName(rentalStartDate.month)} ${rentalStartDate.day}';
+    final end = '${_monthName(rentalEndDate.month)} ${rentalEndDate.day}, ${rentalEndDate.year}';
+    return '$start - $end';
+  }
+
+  String _monthName(int month) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return months[month - 1];
+  }
+
   Map<String, dynamic> toJson() {
     return {
       if (userId.isNotEmpty) 'user_id': userId,

@@ -53,53 +53,135 @@ class Product {
 
   factory Product.fromJson(Map<String, dynamic> json) {
     final List<String> parsedImages = [];
-    if (json['product_images'] != null) {
-      for (var img in json['product_images']) {
-        parsedImages.add(img['image_url'] as String);
+    // product_images: list of {image_url, display_order}
+    final imgs = json['product_images'];
+    if (imgs is List) {
+      for (final img in imgs) {
+        if (img is Map && img['image_url'] != null) {
+          parsedImages.add(img['image_url'].toString());
+        }
       }
     }
-    
-    final List<String> parsedSizes = [];
-    if (json['product_sizes'] != null) {
-      for (var size in json['product_sizes']) {
-        parsedSizes.add(size['size'] as String);
-      }
-    }
-    
-    final List<String> parsedColors = [];
-    if (json['product_colors'] != null) {
-      for (var color in json['product_colors']) {
-        parsedColors.add(color['color_name'] as String);
+    // Fallback: a single `image_url` / `images` / `thumbnail` field
+    if (parsedImages.isEmpty) {
+      for (final k in ['image_url', 'images', 'thumbnail', 'cover_image_url']) {
+        final v = json[k];
+        if (v is String && v.isNotEmpty) {
+          parsedImages.add(v);
+          break;
+        }
       }
     }
 
-    final double pPrice = (json['rental_price_per_day'] as num?)?.toDouble() ?? 0.0;
+    final List<String> parsedSizes = [];
+    final sizes = json['product_sizes'];
+    if (sizes is List) {
+      for (final size in sizes) {
+        if (size is Map && size['size'] != null) {
+          parsedSizes.add(size['size'].toString());
+        }
+      }
+    }
+    if (parsedSizes.isEmpty) {
+      for (final k in ['sizes', 'available_sizes']) {
+        final v = json[k];
+        if (v is List) {
+          for (final s in v) {
+            if (s is String) parsedSizes.add(s);
+            if (s is Map && s['size'] != null) parsedSizes.add(s['size'].toString());
+          }
+        }
+      }
+    }
+
+    final List<String> parsedColors = [];
+    final colors = json['product_colors'];
+    if (colors is List) {
+      for (final color in colors) {
+        if (color is Map) {
+          final n = color['color_name'] ?? color['name'];
+          if (n != null) parsedColors.add(n.toString());
+        } else if (color is String) {
+          parsedColors.add(color);
+        }
+      }
+    }
+    if (parsedColors.isEmpty) {
+      for (final k in ['colors', 'available_colors']) {
+        final v = json[k];
+        if (v is List) {
+          for (final c in v) {
+            if (c is String) parsedColors.add(c);
+            if (c is Map && c['color_name'] != null) parsedColors.add(c['color_name'].toString());
+          }
+        }
+      }
+    }
+
+    final double pPrice =
+        (json['rental_price_per_day'] as num?)?.toDouble() ??
+            (json['rental_price'] as num?)?.toDouble() ??
+            (json['price'] as num?)?.toDouble() ??
+            0.0;
+
+    // Category: prefer joined `categories.name`, else raw `category` field
+    String category = '';
+    if (json['categories'] is Map) {
+      category = (json['categories']['name'] ?? '').toString();
+    } else if (json['category'] is Map) {
+      category = (json['category']['name'] ?? '').toString();
+    } else {
+      category = (json['category'] ?? '').toString();
+    }
+
+    // Store fields
+    String storeName = '';
+    bool isVerifiedStore = false;
+    String storeLocation = '';
+    if (json['stores'] is Map) {
+      final s = json['stores'] as Map;
+      storeName =
+          (s['name'] ?? s['shop_name'] ?? '').toString();
+      isVerifiedStore = s['is_verified'] == true;
+      storeLocation = (s['location'] ?? '').toString();
+    } else {
+      storeName = (json['store_name'] ?? '').toString();
+      storeLocation = (json['location'] ?? '').toString();
+    }
+
+    DateTime? tryParseDate(dynamic v) {
+      if (v == null) return null;
+      if (v is DateTime) return v;
+      return DateTime.tryParse(v.toString());
+    }
 
     return Product(
-      id: json['id'] as String,
-      storeId: json['store_id'] as String? ?? '',
-      categoryId: json['category_id'] as String?,
-      brandId: json['brand_id'] as String?,
-      name: json['name'] as String? ?? '',
-      category: json['categories'] != null ? json['categories']['name'] : '',
+      id: (json['id'] ?? '').toString(),
+      storeId: (json['store_id'] ?? '').toString(),
+      categoryId: json['category_id']?.toString(),
+      brandId: json['brand_id']?.toString(),
+      name: (json['name'] ?? json['title'] ?? '').toString(),
+      category: category,
       rentalPricePerDay: pPrice,
       price: pPrice,
-      originalPrice: (json['original_price'] as num?)?.toDouble() ?? 0.0,
+      originalPrice: (json['original_price'] as num?)?.toDouble() ?? pPrice,
       securityDeposit: (json['security_deposit'] as num?)?.toDouble() ?? 0.0,
-      description: json['description'] as String? ?? '',
-      gender: json['gender'] as String? ?? 'Unisex',
+      description: (json['description'] ?? '').toString(),
+      gender: (json['gender'] ?? 'Unisex').toString(),
       images: parsedImages,
       sizes: parsedSizes,
       colors: parsedColors,
       rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
-      reviewsCount: json['reviews_count'] as int? ?? 0,
-      storeName: json['stores'] != null ? json['stores']['name'] : '',
-      isVerifiedStore: json['stores'] != null ? json['stores']['is_verified'] : false,
-      location: json['stores'] != null ? json['stores']['location'] : '',
-      arModelUrl: json['ar_model_url'] as String?,
-      videoUrl: json['video_url'] as String?,
-      availableFrom: json['available_from'] != null ? DateTime.parse(json['available_from']) : null,
-      availableUntil: json['available_until'] != null ? DateTime.parse(json['available_until']) : null,
+      reviewsCount: (json['reviews_count'] is int)
+          ? json['reviews_count'] as int
+          : int.tryParse(json['reviews_count']?.toString() ?? '') ?? 0,
+      storeName: storeName,
+      isVerifiedStore: isVerifiedStore,
+      location: storeLocation,
+      arModelUrl: json['ar_model_url']?.toString(),
+      videoUrl: json['video_url']?.toString(),
+      availableFrom: tryParseDate(json['available_from']),
+      availableUntil: tryParseDate(json['available_until']),
     );
   }
 

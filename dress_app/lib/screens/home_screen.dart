@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:dress_app/theme.dart';
+import 'package:dress_app/models/product.dart';
 import 'package:dress_app/services/app_state.dart';
 import 'package:dress_app/screens/notifications_screen.dart';
 import 'package:dress_app/screens/search_results_screen.dart';
 import 'package:dress_app/screens/category_listing_screen.dart';
 import 'package:dress_app/screens/filters_bottom_sheet.dart';
+import 'package:dress_app/screens/login_screen.dart';
+import 'package:dress_app/screens/edit_profile_screen.dart';
 import 'package:dress_app/widgets/product_card.dart';
 import 'package:dress_app/services/database_service.dart';
 
@@ -22,20 +24,21 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String _selectedCategory = 'All';
+  late Future<List<Product>> _productsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _productsFuture = _fetchProducts();
+  }
 
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
-    if (appState.isLoading) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(color: AppTheme.primaryLime),
-        ),
-      );
-    }
-
     final user = appState.currentUser;
-    
+    final isGuest = appState.isGuest;
+    final firstName = _firstNameOf(user.name, isGuest);
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       body: Container(
@@ -44,8 +47,8 @@ class _HomeScreenState extends State<HomeScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFFE4F4FA), // Very light pale blue at top
-              Color(0xFFF7F9FB), // Light background
+              Color(0xFFE4F4FA),
+              Color(0xFFF7F9FB),
               Color(0xFFF7F9FB),
             ],
             stops: [0.0, 0.2, 1.0],
@@ -60,25 +63,94 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildHeader(context, user.name, user.avatarUrl),
-                    const SizedBox(height: 24),
-                    _buildInfluencersSection(),
+                    _buildHeader(context, firstName, user.avatarUrl, isGuest),
+                    const SizedBox(height: 20),
                     _buildSearchBar(context),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
                     _buildCategoryChips(),
-                    const SizedBox(height: 24),
-                    _buildSectionTitle(context, 'New Arrived'),
-                    const SizedBox(height: 16),
-                    FutureBuilder<List<Map<String, dynamic>>>(
-                      future: _fetchProducts(),
+                    const SizedBox(height: 20),
+                    _buildSectionTitle(context, 'New arrivals'),
+                    const SizedBox(height: 12),
+                    FutureBuilder<List<Product>>(
+                      future: _productsFuture,
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const Center(child: CircularProgressIndicator());
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 32),
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: AppTheme.primaryLime,
+                                strokeWidth: 2,
+                              ),
+                            ),
+                          );
                         }
                         if (snapshot.hasError) {
-                          return Center(child: Text('Error loading products.'));
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 24),
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    FluentIcons.error_circle_24_regular,
+                                    size: 32,
+                                    color: AppTheme.textLight
+                                        .withOpacity(0.5),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    "Couldn't load products",
+                                    style: GoogleFonts.inter(
+                                      color: AppTheme.textLight,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _productsFuture = _fetchProducts();
+                                      });
+                                    },
+                                    child: Text(
+                                      'Tap to retry',
+                                      style: GoogleFonts.inter(
+                                        color: AppTheme.textDark,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w800,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
                         }
-                        return _buildProductGrid(context, snapshot.data ?? []);
+                        final all = snapshot.data ?? const <Product>[];
+                        final filtered = _selectedCategory == 'All'
+                            ? all
+                            : all
+                                .where((p) =>
+                                    p.category.toLowerCase() ==
+                                    _selectedCategory.toLowerCase())
+                                .toList();
+                        if (filtered.isEmpty) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 32),
+                            child: Center(
+                              child: Text(
+                                'No items in "$_selectedCategory" yet',
+                                style: GoogleFonts.inter(
+                                  color: AppTheme.textLight,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+                        return _buildProductGrid(context, filtered);
                       },
                     ),
                   ],
@@ -91,98 +163,172 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<List<Map<String, dynamic>>> _fetchProducts() async {
-     // Fetch products using DatabaseService instead of MockDataService
-     // In a real app we would apply `_selectedCategory` logic to the DB call 
-     // For now, we fetch all from Supabase and parse/filter locally for simplicity
-     final db = DatabaseService();
-     return await db.getProducts();
+  Future<List<Product>> _fetchProducts() async {
+    try {
+      final db = DatabaseService();
+      final rawProducts = await db.getProducts();
+      return rawProducts
+          .where((m) => m.isNotEmpty)
+          .map((m) => Product.fromJson(m))
+          .where((p) => p.id.isNotEmpty)
+          .toList();
+    } catch (_) {
+      return const [];
+    }
   }
 
-  Widget _buildHeader(BuildContext context, String userName, String? avatarUrl) {
+  /// First name only, or 'Guest' when no user is signed in.
+  String _firstNameOf(String name, bool isGuest) {
+    if (isGuest) return 'Guest';
+    final n = name.trim();
+    if (n.isEmpty) return 'Guest';
+    final parts = n.split(RegExp(r'\s+'));
+    return parts.first;
+  }
+
+  Widget _buildHeader(
+    BuildContext context,
+    String firstName,
+    String? avatarUrl,
+    bool isGuest,
+  ) {
+    final hasAvatar = avatarUrl != null && avatarUrl.isNotEmpty;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(
-                  'HEY ${userName.toUpperCase()}!',
-                  style: GoogleFonts.inter(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w900,
-                    color: AppTheme.textDark,
-                    letterSpacing: -0.5,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  // 30% smaller: 20 * 0.7 ≈ 14
+                  Text(
+                    'Hey $firstName!',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                      color: AppTheme.textDark,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Text('👋', style: TextStyle(fontSize: 14)),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Text(
+                isGuest
+                    ? 'Sign in to access your rentals & wallet'
+                    : 'Find your next outfit — rent it.',
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: AppTheme.textLight,
+                ),
+              ),
+              if (isGuest) ...[
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const LoginScreen(),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 7,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.textDark,
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          FluentIcons.arrow_right_24_regular,
+                          color: AppTheme.primaryLime,
+                          size: 12,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          'SIGN IN',
+                          style: GoogleFonts.inter(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: AppTheme.primaryLime,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                const SizedBox(width: 4),
-                const Text('👋', style: TextStyle(fontSize: 24)),
               ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Explore the best items here..',
-              style: GoogleFonts.inter(fontSize: 15, color: AppTheme.textLight),
-            ),
-          ],
+            ],
+          ),
         ),
         Row(
           children: [
             GestureDetector(
               onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const NotificationsScreen(),
+                  ),
+                );
               },
-              child: Stack(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
-                    child: const Icon(
-                      FluentIcons.alert_24_regular,
-                      color: AppTheme.textDark,
-                      size: 22,
-                    ),
-                  ),
-                  Positioned(
-                    right: 12,
-                    top: 12,
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 1.5),
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
+                child: const Icon(
+                  FluentIcons.alert_24_regular,
+                  color: AppTheme.textDark,
+                  size: 18,
+                ),
               ),
             ),
-            const SizedBox(width: 12),
-            Container(
-              width: 46,
-              height: 46,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                image: DecorationImage(
-                  image: CachedNetworkImageProvider(
-                    avatarUrl != null && avatarUrl.isNotEmpty ? avatarUrl : 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=200&auto=format&fit=crop',
-                  ),
-                  fit: BoxFit.cover,
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+              ),
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppTheme.primaryLime,
                 ),
+                alignment: Alignment.center,
+                child: hasAvatar
+                    ? ClipOval(
+                        child: CachedNetworkImage(
+                          imageUrl: avatarUrl,
+                          width: 36,
+                          height: 36,
+                          fit: BoxFit.cover,
+                          errorWidget: (_, __, ___) =>
+                              _initialAvatar(firstName),
+                        ),
+                      )
+                    : _initialAvatar(firstName),
               ),
             ),
           ],
@@ -191,203 +337,34 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildInfluencersSection() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(
-            'Explore Our\nInfluencer',
-            style: GoogleFonts.inter(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              color: AppTheme.textDark,
-              height: 1.2,
-            ),
-          ),
-          const SizedBox(width: 16),
-          _buildInfluencerAvatar(
-            isYou: true,
-            label: 'You',
-            imgUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
-          ),
-          const SizedBox(width: 16),
-          _buildInfluencerAvatar(
-            label: 'Alex H.',
-            imgUrl: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=200&auto=format&fit=crop',
-            isVerified: true,
-          ),
-          const SizedBox(width: 16),
-          _buildInfluencerAvatar(
-            label: 'David W.',
-            imgUrl: 'https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?q=80&w=200&auto=format&fit=crop',
-            isVerified: true,
-          ),
-          const SizedBox(width: 16),
-          _buildInfluencerAvatar(
-            label: 'L.',
-            imgUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=200&auto=format&fit=crop',
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfluencerAvatar({
-    bool isYou = false,
-    required String label,
-    required String imgUrl,
-    bool isVerified = false,
-  }) {
-    return GestureDetector(
-      onTap: () {
-        if (isYou) {
-          showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-              title: Text(
-                'Post Your Look',
-                style: GoogleFonts.inter(fontWeight: FontWeight.w900, color: AppTheme.textDark),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                   Text(
-                    'Share your style with the community and tag the dresses you are wearing.',
-                    style: GoogleFonts.inter(color: AppTheme.textLight),
-                  ),
-                  const SizedBox(height: 20),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryLime.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppTheme.primaryLime.withValues(alpha: 0.2)),
-                    ),
-                    child: Column(
-                      children: [
-                        const Icon(FluentIcons.image_add_24_regular, size: 32, color: AppTheme.primaryLime),
-                        const SizedBox(height: 8),
-                        Text('Upload Photo/Video', style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: AppTheme.primaryLime)),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text('CANCEL', style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: AppTheme.textLight)),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Look posted successfully!')));
-                  },
-                  child: Text('POST', style: GoogleFonts.inter(fontWeight: FontWeight.w900, color: AppTheme.primaryLime)),
-                ),
-              ],
-            ),
-          );
-        } else {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => CategoryListingScreen(categoryName: '$label\'s Collection')));
-        }
-      },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Stack(
-            clipBehavior: Clip.none,
-            alignment: Alignment.center,
-            children: [
-              Container(
-                width: 64,
-                height: 64,
-                padding: const EdgeInsets.all(2.5),
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF2E8A99), Color(0xFFECA04F)],
-                    begin: Alignment.topRight,
-                    end: Alignment.bottomLeft,
-                  ),
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
-                    image: DecorationImage(
-                      image: CachedNetworkImageProvider(imgUrl),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-              ),
-              if (isYou)
-                Positioned(
-                  bottom: -4,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: AppTheme.textDark,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
-                    ),
-                    child: const Icon(Icons.add, size: 10, color: Colors.white),
-                  ),
-                ),
-              if (isVerified)
-                Positioned(
-                  bottom: 0,
-                  right: -4,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.verified,
-                      size: 14,
-                      color: Colors.green,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              fontWeight: isYou ? FontWeight.w700 : FontWeight.w600,
-              color: AppTheme.textDark,
-            ),
-          ),
-        ],
+  Widget _initialAvatar(String name) {
+    final letter = name.isNotEmpty ? name[0].toUpperCase() : '?';
+    return Text(
+      letter,
+      style: GoogleFonts.inter(
+        color: AppTheme.textDark,
+        fontWeight: FontWeight.w900,
+        fontSize: 14,
       ),
     );
   }
 
   Widget _buildCategoryChips() {
-    final List<String> categories = ['All', 'New Arrived', 'Popular', 'Offer', 'Verified'];
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: categories.map((cat) {
+    final List<String> categories = const [
+      'All', 'Ethnic', 'Formal', 'Casual', 'Party', 'Bridal',
+    ];
+    return SizedBox(
+      height: 30,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: categories.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, i) {
+          final cat = categories[i];
           final isSelected = cat == _selectedCategory;
           return GestureDetector(
-            onTap: () {
-              setState(() {
-                _selectedCategory = cat;
-              });
-            },
+            onTap: () => setState(() => _selectedCategory = cat),
             child: Container(
-              margin: const EdgeInsets.only(right: 8),
               padding: const EdgeInsets.symmetric(
                 horizontal: 14,
                 vertical: 6,
@@ -395,21 +372,22 @@ class _HomeScreenState extends State<HomeScreen> {
               decoration: BoxDecoration(
                 color: isSelected ? AppTheme.textDark : Colors.white,
                 borderRadius: BorderRadius.circular(100),
-                boxShadow: isSelected ? null : [
-                  BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4, offset: const Offset(0, 2))
-                ],
+                border: isSelected
+                    ? null
+                    : Border.all(color: AppTheme.border),
               ),
+              alignment: Alignment.center,
               child: Text(
                 cat,
                 style: GoogleFonts.inter(
-                  fontSize: 13,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  color: isSelected ? Colors.white : AppTheme.textLight,
+                  fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  color: isSelected ? Colors.white : AppTheme.textDark,
                 ),
               ),
             ),
           );
-        }).toList(),
+        },
       ),
     );
   }
@@ -428,24 +406,28 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       child: TextField(
+        style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textDark),
         onSubmitted: (value) {
           if (value.trim().isNotEmpty) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => SearchResultsScreen(query: value)),
+              MaterialPageRoute(
+                builder: (_) => SearchResultsScreen(query: value),
+              ),
             );
           }
         },
         decoration: InputDecoration(
-          hintText: 'Search items, sellers, or brands',
-          hintStyle: GoogleFonts.inter(color: AppTheme.textLight, fontSize: 14),
+          hintText: 'Search items, sellers or brands',
+          hintStyle:
+              GoogleFonts.inter(color: AppTheme.textLight, fontSize: 13),
           border: InputBorder.none,
           prefixIcon: Padding(
-            padding: const EdgeInsets.all(14.0),
+            padding: const EdgeInsets.all(12.0),
             child: Image.asset(
               'assets/images/search_icon.png',
-              width: 20,
-              height: 20,
+              width: 18,
+              height: 18,
               color: AppTheme.textDark,
             ),
           ),
@@ -459,16 +441,16 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             },
             child: Padding(
-              padding: const EdgeInsets.only(right: 14.0, left: 14.0),
+              padding: const EdgeInsets.symmetric(horizontal: 12.0),
               child: Image.asset(
                 'assets/images/filter.png',
-                width: 20,
-                height: 20,
+                width: 18,
+                height: 18,
                 color: AppTheme.textDark,
               ),
             ),
           ),
-          contentPadding: const EdgeInsets.symmetric(vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(vertical: 12),
         ),
       ),
     );
@@ -477,36 +459,46 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildSectionTitle(BuildContext context, String title) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
           title,
           style: GoogleFonts.inter(
-            fontSize: 18,
+            fontSize: 14,
             fontWeight: FontWeight.w800,
             color: AppTheme.textDark,
+            letterSpacing: -0.2,
           ),
         ),
         GestureDetector(
           onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const CategoryListingScreen(categoryName: 'All')));
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => CategoryListingScreen(
+                  categoryName: _selectedCategory == 'All'
+                      ? 'All Items'
+                      : _selectedCategory,
+                ),
+              ),
+            );
           },
           child: Row(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                'See All',
+                'See all',
                 style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
                   color: AppTheme.textDark,
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 2),
               const Icon(
-                FluentIcons.chevron_down_24_regular,
-                size: 16,
+                FluentIcons.chevron_right_24_regular,
+                size: 12,
                 color: AppTheme.textDark,
               ),
             ],
@@ -516,13 +508,21 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildProductGrid(BuildContext context, List<dynamic> products) {
+  Widget _buildProductGrid(BuildContext context, List<Product> products) {
     if (products.isEmpty) {
-      return const Center(child: Text("No products found"));
+      return Center(
+        child: Text(
+          "No products found",
+          style: GoogleFonts.inter(
+            color: AppTheme.textLight,
+            fontSize: 12,
+          ),
+        ),
+      );
     }
 
-    final leftColumn = <dynamic>[];
-    final rightColumn = <dynamic>[];
+    final leftColumn = <Product>[];
+    final rightColumn = <Product>[];
     for (int i = 0; i < products.length; i++) {
       if (i % 2 == 0) {
         leftColumn.add(products[i]);
@@ -536,29 +536,32 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         Expanded(
           child: Column(
-            children: leftColumn.map((product) => Padding(
-              padding: const EdgeInsets.only(bottom: 24),
-              child: ProductCard(
-                product: product,
-                imageHeight: 260,
-              ),
-            )).toList(),
+            children: leftColumn
+                .map((product) => Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: ProductCard(
+                        product: product,
+                        imageHeight: 240,
+                      ),
+                    ))
+                .toList(),
           ),
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: 14),
         Expanded(
           child: Column(
-            children: rightColumn.map((product) => Padding(
-              padding: const EdgeInsets.only(bottom: 24),
-              child: ProductCard(
-                product: product,
-                imageHeight: 180,
-              ),
-            )).toList(),
+            children: rightColumn
+                .map((product) => Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: ProductCard(
+                        product: product,
+                        imageHeight: 170,
+                      ),
+                    ))
+                .toList(),
           ),
         ),
       ],
     );
   }
 }
-

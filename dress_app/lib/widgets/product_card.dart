@@ -19,7 +19,7 @@ class ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     String title = product.name;
     String location = product.location;
-    String price = 'AED${product.price.toStringAsFixed(2)}';
+    String price = '₹${product.price.toStringAsFixed(0)}';
     String rating = product.rating.toString();
     String imgUrl = product.images.isNotEmpty ? product.images.first : '';
     bool isVerified = product.isVerifiedStore;
@@ -52,12 +52,12 @@ class ProductCard extends StatelessWidget {
                 child: FavoriteButton(productId: product.id),
               ),
               Positioned(
-                bottom: 4,
-                right: 4,
+                bottom: 6,
+                right: 6,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 10,
+                    horizontal: 12,
+                    vertical: 6,
                   ),
                   decoration: BoxDecoration(
                     color: AppTheme.primaryLime,
@@ -75,14 +75,14 @@ class ProductCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
           Row(
             children: [
               Expanded(
                 child: Text(
                   location,
                   style: GoogleFonts.inter(
-                    fontSize: 12,
+                    fontSize: 11,
                     color: AppTheme.textLight,
                     fontWeight: FontWeight.w500,
                   ),
@@ -92,11 +92,11 @@ class ProductCard extends StatelessWidget {
               ),
               if (isVerified) ...[
                 const SizedBox(width: 4),
-                const Icon(Icons.verified, size: 14, color: Colors.green),
+                const Icon(Icons.verified, size: 12, color: Colors.green),
               ],
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -105,25 +105,28 @@ class ProductCard extends StatelessWidget {
                 child: Text(
                   title,
                   style: GoogleFonts.inter(
-                    fontSize: 15,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: AppTheme.textDark,
+                    height: 1.25,
                   ),
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
+              const SizedBox(width: 4),
               Row(
                 children: [
                   Text(
                     rating,
                     style: GoogleFonts.inter(
-                      fontSize: 13,
-                      color: AppTheme.textLight,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textDark,
                     ),
                   ),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.star, size: 14, color: Colors.amber),
+                  const SizedBox(width: 2),
+                  const Icon(Icons.star, size: 12, color: Colors.amber),
                 ],
               ),
             ],

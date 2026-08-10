@@ -71,7 +71,7 @@ class _MainNavigationState extends State<MainNavigation> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if ((_showVendorMenu || _currentIndex == 2) && isVendor)
+              if (_showVendorMenu && isVendor)
                 _buildExtendedVendorMenu(context),
               Container(
                 height: 72,

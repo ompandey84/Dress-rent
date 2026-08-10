@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:dress_app/theme.dart';
+import 'package:dress_app/services/database_service.dart';
+import 'package:dress_app/services/app_state.dart';
+import 'package:provider/provider.dart';
 import 'package:dress_app/screens/vendor/vendor_inventory_screen.dart';
 import 'package:dress_app/screens/vendor/vendor_add_item_screen.dart';
 import 'package:dress_app/screens/vendor/vendor_bookings_screen.dart';
@@ -10,8 +13,47 @@ import 'package:dress_app/screens/vendor/vendor_ratings_screen.dart';
 import 'package:dress_app/screens/vendor/vendor_notifications_screen.dart';
 import 'package:dress_app/screens/vendor/vendor_availability_screen.dart';
 
-class VendorDashboardScreen extends StatelessWidget {
+class VendorDashboardScreen extends StatefulWidget {
   const VendorDashboardScreen({super.key});
+
+  @override
+  State<VendorDashboardScreen> createState() => _VendorDashboardScreenState();
+}
+
+class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
+  Map<String, dynamic> _analytics = const {};
+  List<Map<String, dynamic>> _bookings = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final db = DatabaseService();
+    try {
+      final analytics = await db.getVendorAnalytics() ?? const {};
+      final bookings = await db.getVendorBookings();
+      if (!mounted) return;
+      setState(() {
+        _analytics = analytics;
+        _bookings = bookings;
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+    }
+  }
+
+  String _fmt(num? v) {
+    if (v == null) return '0';
+    if (v >= 100000) return '${(v / 100000).toStringAsFixed(1)}L';
+    if (v >= 1000) return '${(v / 1000).toStringAsFixed(1)}K';
+    return v.toStringAsFixed(0);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,21 +74,23 @@ class VendorDashboardScreen extends StatelessWidget {
         ),
         child: SafeArea(
           bottom: false,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 10, 20, 40),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(context),
-                const SizedBox(height: 24),
-                _buildOverviewCards(),
-                const SizedBox(height: 24),
-                _buildAnalyticsSection(),
-                const SizedBox(height: 24),
-                _buildQuickActions(context),
-                const SizedBox(height: 24),
-                _buildNotificationsPanel(context),
-              ],
+          child: RefreshIndicator(
+            onRefresh: _load,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(context),
+                  const SizedBox(height: 16),
+                  _buildOverviewCards(),
+                  const SizedBox(height: 16),
+                  _buildQuickActions(context),
+                  const SizedBox(height: 16),
+                  _buildRecentBookings(),
+                ],
+              ),
             ),
           ),
         ),
@@ -55,58 +99,47 @@ class VendorDashboardScreen extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
+    final isVendor = context.watch<AppState>().currentUser.isVendor;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'VENDOR DASHBOARD',
-                  style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.w900, color: AppTheme.textDark, letterSpacing: -0.5),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Business Overview',
-                  style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textLight),
-                ),
-              ],
+            Text(
+              'DASHBOARD',
+              style: GoogleFonts.inter(
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                color: AppTheme.textDark,
+                letterSpacing: -0.3,
+              ),
+            ),
+            Text(
+              isVendor ? 'Business overview' : 'Become a lender',
+              style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textLight),
             ),
           ],
         ),
         GestureDetector(
           onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const VendorNotificationsScreen()));
+            Navigator.push(
+                context, MaterialPageRoute(builder: (_) => const VendorNotificationsScreen()));
           },
-          child: Stack(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4)),
-                  ],
-                ),
-                child: const Icon(FluentIcons.alert_24_regular, color: AppTheme.textDark, size: 22),
-              ),
-              Positioned(
-                right: 12,
-                top: 12,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 1.5),
-                  ),
-                ),
-              ),
-            ],
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4)),
+              ],
+            ),
+            child: const Icon(FluentIcons.alert_24_regular,
+                color: AppTheme.textDark, size: 18),
           ),
         ),
       ],
@@ -114,219 +147,94 @@ class VendorDashboardScreen extends StatelessWidget {
   }
 
   Widget _buildOverviewCards() {
+    if (_loading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 32),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    final totalRevenue = (_analytics['total_revenue'] as num?) ?? 0;
+    final totalOrders = (_analytics['total_orders'] as num?) ?? 0;
+    final activeListings = (_analytics['active_listings'] as num?) ?? 0;
+    final pendingReturns = (_analytics['pending_returns'] as num?) ?? 0;
+
     return Column(
       children: [
         Row(
           children: [
-            Expanded(child: _buildStatCard('Total\nInventory', '48', FluentIcons.box_24_regular, const Color(0xFF2E8A99))),
-            const SizedBox(width: 12),
-            Expanded(child: _buildStatCard('Active\nRentals', '12', FluentIcons.people_24_regular, Colors.orange)),
+            Expanded(
+                child: _buildStatCard(
+                    'Listings', _fmt(activeListings),
+                    FluentIcons.box_24_regular, const Color(0xFF2E8A99))),
+            const SizedBox(width: 10),
+            Expanded(
+                child: _buildStatCard('Rentals', _fmt(totalOrders),
+                    FluentIcons.people_24_regular, Colors.orange)),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         Row(
           children: [
-            Expanded(child: _buildStatCard('Pending\nReturns', '5', FluentIcons.arrow_undo_24_regular, const Color(0xFFE53935))),
-            const SizedBox(width: 12),
-            Expanded(child: _buildStatCard('Total\nEarnings', 'AED 45.2K', FluentIcons.money_24_regular, Colors.green)),
+            Expanded(
+                child: _buildStatCard('Pending', _fmt(pendingReturns),
+                    FluentIcons.arrow_undo_24_regular, const Color(0xFFE53935))),
+            const SizedBox(width: 10),
+            Expanded(
+                child: _buildStatCard('Earnings', '₹${_fmt(totalRevenue)}',
+                    FluentIcons.money_24_regular, Colors.green)),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+      String label, String value, IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 15, offset: const Offset(0, 5)),
+          BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 8,
+              offset: const Offset(0, 4)),
         ],
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: color, size: 22),
+            child: Icon(icon, color: color, size: 18),
           ),
-          const SizedBox(width: 14),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(value, style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w900, color: AppTheme.textDark)),
-              const SizedBox(height: 2),
-              Text(label, style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textLight, height: 1.3)),
-            ],
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(value,
+                    style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.textDark),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+                const SizedBox(height: 2),
+                Text(label,
+                    style: GoogleFonts.inter(
+                        fontSize: 10,
+                        color: AppTheme.textLight,
+                        fontWeight: FontWeight.w600)),
+              ],
+            ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildAnalyticsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Analytics', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textDark)),
-        const SizedBox(height: 16),
-
-        // Weekly Rentals Graph
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 15, offset: const Offset(0, 5)),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Weekly Rentals', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(color: const Color(0xFFF6F8FA), borderRadius: BorderRadius.circular(100)),
-                    child: Text('This Week', style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textLight, fontWeight: FontWeight.w600)),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              _buildBarChart(),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        // Popular Dresses
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 15, offset: const Offset(0, 5)),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Popular Dresses', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
-              const SizedBox(height: 16),
-              _buildPopularItem('Premium Hoodie', '23 rentals', '⭐ 4.9', 0.9),
-              const SizedBox(height: 12),
-              _buildPopularItem('Denim Jacket', '18 rentals', '⭐ 4.7', 0.75),
-              const SizedBox(height: 12),
-              _buildPopularItem('Casual T-Shirt', '14 rentals', '⭐ 4.5', 0.6),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBarChart() {
-    final data = [
-      {'day': 'Mon', 'value': 0.4},
-      {'day': 'Tue', 'value': 0.7},
-      {'day': 'Wed', 'value': 0.5},
-      {'day': 'Thu', 'value': 0.9},
-      {'day': 'Fri', 'value': 0.6},
-      {'day': 'Sat', 'value': 1.0},
-      {'day': 'Sun', 'value': 0.3},
-    ];
-
-    return SizedBox(
-      height: 120,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: data.map((item) {
-          final isMax = item['value'] == 1.0;
-          return Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    '${((item['value'] as double) * 10).round()}',
-                    style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: AppTheme.textLight),
-                  ),
-                  const SizedBox(height: 4),
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    height: (item['value'] as double) * 80,
-                    decoration: BoxDecoration(
-                      color: isMax ? AppTheme.primaryLime : const Color(0xFF2E8A99).withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    item['day'] as String,
-                    style: GoogleFonts.inter(fontSize: 10, color: AppTheme.textLight, fontWeight: FontWeight.w600),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildPopularItem(String name, String rentals, String rating, double progress) {
-    return Row(
-      children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: const Color(0xFFF6F8FA),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: const Center(child: Icon(FluentIcons.tag_24_regular, size: 18, color: AppTheme.textDark)),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(name, style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
-              const SizedBox(height: 6),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: progress,
-                  minHeight: 4,
-                  backgroundColor: const Color(0xFFF6F8FA),
-                  valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF2E8A99)),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(rentals, style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textLight, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 2),
-            Text(rating, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700)),
-          ],
-        ),
-      ],
     );
   }
 
@@ -334,36 +242,59 @@ class VendorDashboardScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Quick Actions', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textDark)),
-        const SizedBox(height: 16),
+        Text('Quick actions',
+            style: GoogleFonts.inter(
+                fontSize: 14, fontWeight: FontWeight.w800, color: AppTheme.textDark)),
+        const SizedBox(height: 10),
         Row(
           children: [
-            Expanded(child: _buildActionCard(context, 'Add New\nItem', FluentIcons.add_circle_24_regular, const Color(0xFF2E8A99), () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const VendorAddItemScreen()));
+            Expanded(
+                child: _buildActionCard(
+                    context,
+                    'Add item',
+                    FluentIcons.add_circle_24_regular,
+                    const Color(0xFF2E8A99), () {
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (_) => const VendorAddItemScreen()));
             })),
-            const SizedBox(width: 12),
-            Expanded(child: _buildActionCard(context, 'View\nBookings', FluentIcons.calendar_24_regular, Colors.orange, () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const VendorBookingsScreen()));
+            const SizedBox(width: 10),
+            Expanded(
+                child: _buildActionCard(context, 'Bookings',
+                    FluentIcons.calendar_24_regular, Colors.orange, () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const VendorBookingsScreen()));
             })),
-            const SizedBox(width: 12),
-            Expanded(child: _buildActionCard(context, 'View\nEarnings', FluentIcons.money_24_regular, Colors.green, () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const VendorFinancialsScreen()));
+            const SizedBox(width: 10),
+            Expanded(
+                child: _buildActionCard(context, 'Earnings',
+                    FluentIcons.money_24_regular, Colors.green, () {
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (_) => const VendorFinancialsScreen()));
             })),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         Row(
           children: [
-            Expanded(child: _buildActionCard(context, 'Inventory', FluentIcons.box_24_regular, const Color(0xFF7B1FA2), () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const VendorInventoryScreen()));
+            Expanded(
+                child: _buildActionCard(context, 'Inventory',
+                    FluentIcons.box_24_regular, const Color(0xFF7B1FA2), () {
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (_) => const VendorInventoryScreen()));
             })),
-            const SizedBox(width: 12),
-            Expanded(child: _buildActionCard(context, 'Availability', FluentIcons.calendar_clock_24_regular, const Color(0xFFE53935), () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const VendorAvailabilityScreen()));
+            const SizedBox(width: 10),
+            Expanded(
+                child: _buildActionCard(context, 'Availability',
+                    FluentIcons.calendar_clock_24_regular, const Color(0xFFE53935), () {
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (_) => const VendorAvailabilityScreen()));
             })),
-            const SizedBox(width: 12),
-            Expanded(child: _buildActionCard(context, 'Ratings', FluentIcons.star_24_regular, Colors.amber, () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const VendorRatingsScreen()));
+            const SizedBox(width: 10),
+            Expanded(
+                child: _buildActionCard(context, 'Ratings',
+                    FluentIcons.star_24_regular, Colors.amber, () {
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (_) => const VendorRatingsScreen()));
             })),
           ],
         ),
@@ -371,96 +302,147 @@ class VendorDashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActionCard(BuildContext context, String label, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildActionCard(BuildContext context, String label, IconData icon,
+      Color color, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(14),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 15, offset: const Offset(0, 5)),
+            BoxShadow(
+                color: Colors.black.withOpacity(0.02),
+                blurRadius: 8,
+                offset: const Offset(0, 4)),
           ],
         ),
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, color: color, size: 22),
+              child: Icon(icon, color: color, size: 18),
             ),
-            const SizedBox(height: 10),
-            Text(
-              label,
-              style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textDark, height: 1.3),
-              textAlign: TextAlign.center,
-            ),
+            const SizedBox(height: 6),
+            Text(label,
+                style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textDark),
+                textAlign: TextAlign.center),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildNotificationsPanel(BuildContext context) {
+  Widget _buildRecentBookings() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Recent Notifications', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.textDark)),
+            Text('Recent bookings',
+                style: GoogleFonts.inter(
+                    fontSize: 14, fontWeight: FontWeight.w800, color: AppTheme.textDark)),
             GestureDetector(
               onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const VendorNotificationsScreen()));
+                Navigator.push(
+                    context, MaterialPageRoute(builder: (_) => const VendorBookingsScreen()));
               },
-              child: Text('See All', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textDark)),
+              child: Text('See all',
+                  style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textDark)),
             ),
           ],
         ),
-        const SizedBox(height: 16),
-        _buildNotificationCard('New Booking', 'Premium Hoodie booked for Mar 20-23', '2m ago', FluentIcons.cart_24_regular, Colors.green),
-        const SizedBox(height: 10),
-        _buildNotificationCard('Return Reminder', 'Denim Jacket return due tomorrow', '1h ago', FluentIcons.arrow_undo_24_regular, Colors.orange),
-        const SizedBox(height: 10),
-        _buildNotificationCard('Payment Processed', 'AED 2,450 credited to your account', '3h ago', FluentIcons.money_24_regular, const Color(0xFF2E8A99)),
+        const SizedBox(height: 8),
+        if (_bookings.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+                color: Colors.white, borderRadius: BorderRadius.circular(14)),
+            child: Center(
+              child: Text('No bookings yet',
+                  style: GoogleFonts.inter(
+                      fontSize: 12, color: AppTheme.textLight)),
+            ),
+          )
+        else
+          ...(_bookings.take(3).map((b) => _buildBookingRow(b))),
       ],
     );
   }
 
-  Widget _buildNotificationCard(String title, String description, String time, IconData icon, Color color) {
+  Widget _buildBookingRow(Map<String, dynamic> b) {
+    final status = (b['status'] ?? 'pending').toString();
+    final total = (b['total_amount'] as num?)?.toDouble() ?? 0;
+    final id = (b['id'] ?? '').toString();
+    final idShort = id.length > 8 ? id.substring(0, 8).toUpperCase() : id.toUpperCase();
+    Color statusColor;
+    switch (status) {
+      case 'completed':
+      case 'returned':
+        statusColor = Colors.green.shade700;
+        break;
+      case 'cancelled':
+        statusColor = Colors.grey.shade700;
+        break;
+      case 'in_transit_to_renter':
+      case 'return_scheduled':
+        statusColor = Colors.teal.shade700;
+        break;
+      default:
+        statusColor = Colors.orange.shade700;
+    }
     return Container(
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.textLight.withOpacity(0.1)),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: statusColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: color, size: 20),
+            child: Icon(FluentIcons.calendar_24_regular, color: statusColor, size: 16),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.textDark)),
-                const SizedBox(height: 3),
-                Text(description, style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textLight), maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text('Booking #$idShort',
+                    style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.textDark)),
+                Text(status.replaceAll('_', ' '),
+                    style: GoogleFonts.inter(
+                        fontSize: 11,
+                        color: AppTheme.textLight,
+                        fontWeight: FontWeight.w500)),
               ],
             ),
           ),
-          Text(time, style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textLight)),
+          Text('₹ ${total.toStringAsFixed(0)}',
+              style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w900,
+                  color: AppTheme.textDark)),
         ],
       ),
     );

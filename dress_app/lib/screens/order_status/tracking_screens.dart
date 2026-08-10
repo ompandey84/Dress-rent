@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:dress_app/theme.dart';
 import 'package:dress_app/screens/rating_screen.dart';
 import 'package:dress_app/screens/early_pickup_screen.dart';
+import 'package:dress_app/services/booking_service.dart';
 
 import 'package:dress_app/models/order.dart';
 
@@ -16,8 +19,9 @@ class RequestedOrderScreen extends StatelessWidget {
     return _BaseTrackingScreen(
       title: 'REQUESTED ORDER',
       currentStep: 0,
-      orderCost: 'AED ${order.totalPrice.toStringAsFixed(2)}',
+      orderCost: '₹ ${order.totalPrice.toStringAsFixed(0)}',
       canCancel: true,
+      order: order,
     );
   }
 }
@@ -31,8 +35,9 @@ class PreparingOrderScreen extends StatelessWidget {
     return _BaseTrackingScreen(
       title: 'PREPARING ORDER',
       currentStep: 1,
-      orderCost: 'AED ${order.totalPrice.toStringAsFixed(2)}',
+      orderCost: '₹ ${order.totalPrice.toStringAsFixed(0)}',
       canCancel: true,
+      order: order,
     );
   }
 }
@@ -46,7 +51,8 @@ class OutForDeliveryScreen extends StatelessWidget {
     return _BaseTrackingScreen(
       title: 'OUT FOR DELIVERY',
       currentStep: 2,
-      orderCost: 'AED ${order.totalPrice.toStringAsFixed(2)}',
+      orderCost: '₹ ${order.totalPrice.toStringAsFixed(0)}',
+      order: order,
     );
   }
 }
@@ -60,10 +66,11 @@ class DeliveredOrderScreen extends StatelessWidget {
     return _BaseTrackingScreen(
       title: 'DELIVERED ORDER',
       currentStep: 3,
-      orderCost: 'AED ${order.totalPrice.toStringAsFixed(2)}',
+      orderCost: '₹ ${order.totalPrice.toStringAsFixed(0)}',
       showActionButtons: true,
       canExtend: true,
       canReturn: true,
+      order: order,
     );
   }
 }
@@ -76,6 +83,7 @@ class _BaseTrackingScreen extends StatelessWidget {
   final bool canCancel;
   final bool canExtend;
   final bool canReturn;
+  final Order? order;
 
   const _BaseTrackingScreen({
     required this.currentStep,
@@ -85,6 +93,7 @@ class _BaseTrackingScreen extends StatelessWidget {
     this.canCancel = false,
     this.canExtend = false,
     this.canReturn = false,
+    this.order,
     Key? key,
   }) : super(key: key);
 
@@ -180,10 +189,13 @@ class _BaseTrackingScreen extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             _buildInfoCol(
-                                'Created, 18 Oct. 2025', 'Downtown, Dubai',
+                                'Created', _formatDate(order?.createdAt),
                                 crossAlignment: CrossAxisAlignment.start),
                             _buildInfoCol(
-                                'Estimated, 19 Oct 2025', 'Marina, Abu Dhabi',
+                                'Order ID',
+                                (order?.displayId.isNotEmpty ?? false)
+                                    ? order!.displayId
+                                    : (order?.id ?? '—'),
                                 crossAlignment: CrossAxisAlignment.end),
                           ],
                         ),
@@ -193,9 +205,9 @@ class _BaseTrackingScreen extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            _buildInfoCol('Form', 'Downtown, Dubai',
+                            _buildInfoCol('Pickup', _formatDate(order?.createdAt),
                                 crossAlignment: CrossAxisAlignment.start),
-                            _buildInfoCol('To', 'Marina, Abu Dhabi',
+                            _buildInfoCol('Return', _formatDate(_returnDate(order?.createdAt)),
                                 crossAlignment: CrossAxisAlignment.end),
                           ],
                         ),
@@ -203,9 +215,9 @@ class _BaseTrackingScreen extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            _buildInfoCol('Customer', 'Arafat',
+                            _buildInfoCol('Items', '${order?.itemsCount ?? 1}',
                                 crossAlignment: CrossAxisAlignment.start),
-                            _buildInfoCol('Order Cost', orderCost,
+                            _buildInfoCol('Order Total', orderCost,
                                 crossAlignment: CrossAxisAlignment.end),
                           ],
                         ),
@@ -247,7 +259,10 @@ class _BaseTrackingScreen extends StatelessWidget {
                     ),
                     _buildAppBarButton(
                       icon: Icons.shopping_basket_outlined,
-                      onTap: () {},
+                      onTap: () {
+                        // Pop back to the main tab bar and switch to Bag tab.
+                        Navigator.of(context).popUntil((r) => r.isFirst);
+                      },
                     ),
                   ],
                 ),
@@ -470,21 +485,25 @@ class _BaseTrackingScreen extends StatelessWidget {
             context,
             'CANCEL ORDER',
             Colors.red,
-            () => _showMockDialog(context, 'Cancel Order', 'Are you sure you want to cancel this order? A cancellation fee of AED 50 may apply.'),
+            () => _confirmCancel(context),
           ),
         if (canExtend)
           _buildLongButton(
             context,
             'EXTEND RENTAL',
             const Color(0xFF0C6B86),
-            () => _showMockDialog(context, 'Extend Rental', 'Would you like to extend your rental for another 3 days? Additional charges will apply.'),
+            () => _showInfoDialog(
+              context,
+              'Extend rental',
+              'To extend your rental, please message the lender directly. We\'ll add the extra days to your order once they confirm.',
+            ),
           ),
         if (canReturn)
           _buildLongButton(
             context,
             'RETURN ORDER',
             AppTheme.primaryLime,
-            () => _showMockDialog(context, 'Return Order', 'Your return request has been initiated. A courier will contact you shortly.'),
+            () => _confirmReturn(context),
             isPrimary: true,
           ),
       ],
@@ -520,28 +539,95 @@ class _BaseTrackingScreen extends StatelessWidget {
     );
   }
 
-  void _showMockDialog(BuildContext context, String title, String content) {
-    showDialog(
+  Future<void> _confirmCancel(BuildContext context) async {
+    final reason = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.w800)),
-        content: Text(content, style: GoogleFonts.inter()),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('CLOSE', style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: AppTheme.textLight)),
-          ),
-          if (title != 'Return Order')
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$title confirmed!')));
-              },
-              child: Text('CONFIRM', style: GoogleFonts.inter(fontWeight: FontWeight.w900, color: const Color(0xFF0C6B86))),
-            ),
+      builder: (_) => _ReasonDialog(
+        title: 'Cancel order?',
+        message: 'Are you sure? A 20% cancellation fee may apply per our policy.',
+        reasons: const [
+          'Changed my mind',
+          'Found a better option',
+          'Item not available',
+          'Scheduling conflict',
+          'Other',
         ],
       ),
     );
+    if (reason == null || !context.mounted) return;
+    final orderId = order?.id.replaceAll('#', '') ?? '';
+    if (orderId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Order ID missing')),
+      );
+      return;
+    }
+    final ok = await BookingService().cancelBooking(orderId, reason);
+    if (!context.mounted) return;
+    if (ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Order cancelled. Refund will reflect in 3–5 business days.'),
+          backgroundColor: AppTheme.success,
+        ),
+      );
+      Navigator.of(context).pop();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not cancel right now. Please try again.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _confirmReturn(BuildContext context) async {
+    if (order == null) return;
+    final orderId = order!.id.replaceAll('#', '');
+    final ok = await BookingService().markReturnRequested(orderId);
+    if (!context.mounted) return;
+    if (ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Return requested. Our rider will contact you shortly.'),
+          backgroundColor: AppTheme.success,
+        ),
+      );
+      Navigator.of(context).pop();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not request return. Try again.')),
+      );
+    }
+  }
+
+  void _showInfoDialog(BuildContext context, String title, String message) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.w800)),
+        content: Text(message, style: GoogleFonts.inter(height: 1.4)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('OK', style: GoogleFonts.inter(fontWeight: FontWeight.w800, color: AppTheme.textDark)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(DateTime? d) {
+    if (d == null) return '—';
+    return DateFormat('d MMM, h:mm a').format(d);
+  }
+
+  DateTime? _returnDate(DateTime? pickup) {
+    if (pickup == null) return null;
+    return pickup.add(const Duration(days: 3));
   }
 
   Widget _buildActionButtons(BuildContext context) {
@@ -556,7 +642,9 @@ class _BaseTrackingScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const EarlyPickupScreen(),
+                      builder: (context) => EarlyPickupScreen(
+                        bookingId: order?.id ?? '',
+                      ),
                     ),
                   );
                 },
@@ -662,4 +750,69 @@ class _MapPathPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+/// Reason picker dialog for cancellation/return flows.
+class _ReasonDialog extends StatefulWidget {
+  final String title;
+  final String message;
+  final List<String> reasons;
+  const _ReasonDialog({
+    required this.title,
+    required this.message,
+    required this.reasons,
+  });
+
+  @override
+  State<_ReasonDialog> createState() => _ReasonDialogState();
+}
+
+class _ReasonDialogState extends State<_ReasonDialog> {
+  String? _selected;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Text(widget.title, style: GoogleFonts.inter(fontWeight: FontWeight.w900, color: AppTheme.textDark)),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(widget.message, style: GoogleFonts.inter(color: AppTheme.textLight, height: 1.4)),
+            const SizedBox(height: 16),
+            ...widget.reasons.map((r) => RadioListTile<String>(
+                  value: r,
+                  groupValue: _selected,
+                  onChanged: (v) => setState(() => _selected = v),
+                  title: Text(r, style: GoogleFonts.inter(fontSize: 14)),
+                  activeColor: AppTheme.textDark,
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                )),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('CANCEL', style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: AppTheme.textLight)),
+        ),
+        ElevatedButton(
+          onPressed: _selected == null
+              ? null
+              : () => Navigator.pop(context, _selected),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppTheme.textDark,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+            elevation: 0,
+          ),
+          child: Text('CONFIRM', style: GoogleFonts.inter(fontWeight: FontWeight.w800)),
+        ),
+      ],
+    );
+  }
 }

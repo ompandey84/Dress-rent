@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:dress_app/theme.dart';
-import 'package:dress_app/screens/login_screen.dart';
+import 'package:dress_app/screens/phone_login_screen.dart';
+import 'package:dress_app/screens/main_navigation.dart';
+import 'package:dress_app/services/app_state.dart';
+import 'package:dress_app/services/supabase_service.dart';
+import 'package:provider/provider.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({Key? key}) : super(key: key);
@@ -16,25 +20,32 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<Map<String, String>> _onboardingData = [
     {
-      'title': 'DISCOVER BEST\nRENTAL DRESSES\nNEARBY',
-      'subtitle': 'A smarter rental marketplace for the UAE & GCC —\nfast, trusted, and made for your lifestyle.',
+      'title': 'RENT PREMIUM\nFASHION AT\nA FRACTION',
+      'subtitle': 'A smarter rental marketplace for India —\nfast, trusted, and made for your lifestyle.',
       'image': 'assets/images/gfvghj.png',
     },
     {
-      'title': 'WEAR PREMIUM\nBRANDS FOR\nLESS',
+      'title': 'WEAR LUXURY\nBRANDS FOR\nLESS',
       'subtitle': 'Access a curated wardrobe of high-end fashion\nwithout the commitment of buying.',
-      'image': 'assets/images/gfvghj.png', // Reusing placeholder, assuming only 1 asset exists
+      'image': 'assets/images/gfvghj.png',
     },
     {
-      'title': 'RENT OUT YOUR\nWARDROBE &\nEARN',
-      'subtitle': 'Become a vendor and turn your unused\npremium dresses into a new income stream.',
+      'title': 'EARN FROM\nYOUR CLOSET\nEASILY',
+      'subtitle': 'Become a lender and turn your unused\npremium outfits into a new income stream.',
       'image': 'assets/images/gfvghj.png',
     },
   ];
 
-  void _navigateToLogin(BuildContext context) {
+  void _navigateToNext(BuildContext context) {
+    // If Supabase not configured, skip login and go straight to main
+    if (!SupabaseService.isConfigured) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const MainNavigation()),
+      );
+      return;
+    }
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
+      MaterialPageRoute(builder: (_) => const PhoneLoginScreen()),
     );
   }
 
@@ -101,7 +112,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             child: Align(
               alignment: Alignment.topRight,
               child: TextButton(
-                onPressed: () => _navigateToLogin(context),
+                onPressed: () => _navigateToNext(context),
                 child: Text(
                   'Skip',
                   style: GoogleFonts.inter(
@@ -203,7 +214,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     child: ElevatedButton(
                       onPressed: () {
                         if (_currentIndex == _onboardingData.length - 1) {
-                          _navigateToLogin(context);
+                          _navigateToNext(context);
                         } else {
                           _pageController.nextPage(
                             duration: const Duration(milliseconds: 300),

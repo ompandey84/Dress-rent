@@ -4,9 +4,13 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:dress_app/theme.dart';
+import 'package:dress_app/services/database_service.dart';
 
 class EarlyPickupScreen extends StatefulWidget {
-  const EarlyPickupScreen({super.key});
+  /// Required: the booking this request is about. Replaces the old
+  /// hardcoded `'unspecified'` orderId.
+  final String bookingId;
+  const EarlyPickupScreen({super.key, required this.bookingId});
 
   @override
   State<EarlyPickupScreen> createState() => _EarlyPickupScreenState();
@@ -31,8 +35,39 @@ class _EarlyPickupScreenState extends State<EarlyPickupScreen> {
     'The item does not fit well',
     'Item is defective or damaged',
     'I ordered the wrong item by mistake',
-    'Other reason'
+    'Other reason',
   ];
+
+  bool _submitting = false;
+
+  Future<void> _submitRequest() async {
+    if (_submitting) return;
+    setState(() => _submitting = true);
+    try {
+      await DatabaseService().requestEarlyPickup(
+        widget.bookingId,
+        selectedReason ?? '',
+        '',
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Early pickup requested — we\'ll be in touch shortly.',
+              style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+          backgroundColor: AppTheme.success,
+        ),
+      );
+      Navigator.pop(context);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not submit: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,65 +78,72 @@ class _EarlyPickupScreenState extends State<EarlyPickupScreen> {
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(FluentIcons.chevron_left_24_regular,
-              color: AppTheme.textDark),
+          icon: const Icon(FluentIcons.chevron_left_24_regular, color: AppTheme.textDark),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'EARLY PICKUP',
           style: GoogleFonts.inter(
-              fontSize: 14,
-              fontWeight: FontWeight.w800,
-              color: AppTheme.textDark,
-              letterSpacing: 1.0),
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            color: AppTheme.textDark,
+            letterSpacing: 1.0,
+          ),
         ),
       ),
       body: Stack(
         children: [
           SingleChildScrollView(
-            padding: const EdgeInsets.only(
-                left: 24, right: 24, top: 16, bottom: 120),
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 120),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Request Early Pickup',
+                  'Request early pickup',
                   style: GoogleFonts.inter(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
-                      color: AppTheme.textDark),
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: AppTheme.textDark,
+                    letterSpacing: -0.3,
+                  ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Text(
-                  'Need to return your items earlier than expected? Please let us know the reason.',
+                  'Need to return earlier? Tell us why so we can arrange a rider.',
                   style: GoogleFonts.inter(
-                      fontSize: 14, color: AppTheme.textLight, height: 1.5),
+                    fontSize: 13, color: AppTheme.textLight, height: 1.4,
+                  ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
                 Text(
-                  'Reason for early pickup',
+                  'Reason',
                   style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.textDark),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.textDark,
+                    letterSpacing: 0.5,
+                  ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 10),
                 ...reasons.map((reason) => _buildReasonOption(reason)).toList(),
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
                 Text(
-                  'Add Photos (Optional)',
+                  'Add photos (optional)',
                   style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.textDark),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.textDark,
+                    letterSpacing: 0.5,
+                  ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Text(
-                  'If the item is damaged, please attach a photo.',
+                  'If the item is damaged, attach a photo so we can act fast.',
                   style: GoogleFonts.inter(
-                      fontSize: 13, color: AppTheme.textLight),
+                    fontSize: 12, color: AppTheme.textLight,
+                  ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
@@ -110,10 +152,10 @@ class _EarlyPickupScreenState extends State<EarlyPickupScreen> {
                         onTap: _pickImage,
                         child: _buildAddPhotoButton(),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       ..._images.asMap().entries.map((entry) {
                         return Padding(
-                          padding: const EdgeInsets.only(right: 12),
+                          padding: const EdgeInsets.only(right: 10),
                           child: _buildImageTile(entry.value, entry.key),
                         );
                       }).toList(),
@@ -126,9 +168,9 @@ class _EarlyPickupScreenState extends State<EarlyPickupScreen> {
 
           // Floating Bottom Button
           Positioned(
-            bottom: 15, // 15px padding as specified in inspiration
-            left: 24,
-            right: 24,
+            bottom: 12,
+            left: 20,
+            right: 20,
             child: Container(
               width: double.infinity,
               decoration: BoxDecoration(
@@ -146,44 +188,35 @@ class _EarlyPickupScreenState extends State<EarlyPickupScreen> {
                     : [],
               ),
               child: ElevatedButton(
-                onPressed: selectedReason != null
-                    ? () {
-                        Navigator.pop(
-                            context); // Pop back for flow implementation
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                                'Early pickup requested successfully!',
-                                style: GoogleFonts.inter(
-                                    fontWeight: FontWeight.w600)),
-                            backgroundColor: Colors.black87,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12)),
-                            behavior: SnackBarBehavior.floating,
-                            margin: const EdgeInsets.all(20),
-                          ),
-                        );
-                      }
+                onPressed: selectedReason != null && !_submitting
+                    ? _submitRequest
                     : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
                   shadowColor: Colors.transparent,
                   disabledForegroundColor: AppTheme.textLight,
                   disabledBackgroundColor: Colors.transparent,
-                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(100)),
                 ),
                 child: Center(
-                  child: Text(
-                    'SUBMIT REQUEST',
-                    style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w900,
-                        color: selectedReason != null
-                            ? AppTheme.textDark
-                            : AppTheme.textLight.withOpacity(0.5)),
-                  ),
+                  child: _submitting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.textDark),
+                        )
+                      : Text(
+                          'SUBMIT REQUEST',
+                          style: GoogleFonts.inter(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
+                              color: selectedReason != null
+                                  ? AppTheme.textDark
+                                  : AppTheme.textLight.withOpacity(0.5),
+                              letterSpacing: 0.5),
+                        ),
                 ),
               ),
             ),
@@ -202,37 +235,37 @@ class _EarlyPickupScreenState extends State<EarlyPickupScreen> {
         });
       },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color:
-              isSelected ? AppTheme.primaryLime.withOpacity(0.1) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          color: isSelected
+              ? AppTheme.primaryLime.withOpacity(0.08)
+              : Colors.white,
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSelected ? AppTheme.primaryLime : Colors.grey.shade200,
-            width: isSelected ? 2 : 1,
+            color: isSelected ? AppTheme.primaryLime : AppTheme.border,
+            width: isSelected ? 1.5 : 1,
           ),
         ),
         child: Row(
           children: [
             Container(
-              width: 20,
-              height: 20,
+              width: 18,
+              height: 18,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color:
-                      isSelected ? AppTheme.primaryLime : Colors.grey.shade400,
-                  width: isSelected ? 6 : 1.5,
+                  color: isSelected ? AppTheme.primaryLime : AppTheme.textLight,
+                  width: isSelected ? 5 : 1.5,
                 ),
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             Expanded(
               child: Text(
                 reason,
                 style: GoogleFonts.inter(
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                   color: AppTheme.textDark,
                 ),
@@ -246,26 +279,25 @@ class _EarlyPickupScreenState extends State<EarlyPickupScreen> {
 
   Widget _buildAddPhotoButton() {
     return Container(
-      width: 80,
-      height: 80,
+      width: 72,
+      height: 72,
       decoration: BoxDecoration(
         color: const Color(0xFFF1F4F5),
-        borderRadius: BorderRadius.circular(16),
-        border:
-            Border.all(color: Colors.grey.shade300, style: BorderStyle.solid),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.border, style: BorderStyle.solid),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(FluentIcons.camera_add_24_regular,
-              color: AppTheme.textDark),
-          const SizedBox(height: 4),
+          const Icon(FluentIcons.camera_add_24_regular, color: AppTheme.textDark, size: 20),
+          const SizedBox(height: 2),
           Text(
             'Add',
             style: GoogleFonts.inter(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.textDark),
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textDark,
+            ),
           ),
         ],
       ),
@@ -276,17 +308,17 @@ class _EarlyPickupScreenState extends State<EarlyPickupScreen> {
     return Stack(
       children: [
         ClipRRect(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           child: Image.file(
             File(file.path),
-            width: 80,
-            height: 80,
+            width: 72,
+            height: 72,
             fit: BoxFit.cover,
           ),
         ),
         Positioned(
-          top: 6,
-          right: 6,
+          top: 4,
+          right: 4,
           child: GestureDetector(
             onTap: () {
               setState(() {
@@ -294,9 +326,9 @@ class _EarlyPickupScreenState extends State<EarlyPickupScreen> {
               });
             },
             child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.6),
+              padding: const EdgeInsets.all(3),
+              decoration: const BoxDecoration(
+                color: Color(0xCC000000),
                 shape: BoxShape.circle,
               ),
               child: const Icon(FluentIcons.dismiss_12_regular, color: Colors.white, size: 12),

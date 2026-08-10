@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:provider/provider.dart';
 import 'package:dress_app/theme.dart';
 import 'package:dress_app/widgets/custom_text_field.dart';
 import 'package:dress_app/screens/main_navigation.dart';
 import 'package:dress_app/screens/legal_content_screen.dart';
 import 'package:dress_app/services/auth_service.dart';
+import 'package:dress_app/services/app_state.dart';
+import 'package:dress_app/models/user_profile.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({Key? key}) : super(key: key);
@@ -53,9 +56,26 @@ class _SignupScreenState extends State<SignupScreen> {
         await _authService.signUp(
           email: _emailController.text.trim(),
           password: _passwordController.text,
-          fullName: _nameController.text.trim(),
+          data: {'full_name': _nameController.text.trim()},
         );
         if (mounted) {
+          // Register the user in AppState so the rest of the app sees
+          // them as authenticated (not guest). In mock mode, the
+          // Supabase auth call is a no-op, so we always synthesize a
+          // local profile keyed by the email.
+          final appState = context.read<AppState>();
+          await appState.setAuthenticated(UserProfile(
+            id: 'local-${_emailController.text.trim()}',
+            name: _nameController.text.trim().isNotEmpty
+                ? _nameController.text.trim()
+                : _emailController.text.trim().split('@').first,
+            email: _emailController.text.trim(),
+            phone: '',
+            avatarUrl: '',
+            isVendor: false,
+            isOnboarded: true,
+          ));
+          if (!mounted) return;
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (context) => const MainNavigation()),
             (route) => false,
@@ -105,24 +125,24 @@ class _SignupScreenState extends State<SignupScreen> {
                 Text(
                   'CREATE ACCOUNT',
                   style: GoogleFonts.inter(
-                    fontSize: 28,
+                    fontSize: 18,
                     fontWeight: FontWeight.w900,
                     color: AppTheme.textDark,
-                    letterSpacing: -0.5,
+                    letterSpacing: -0.4,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 6),
                 Text(
-                  'Sign up to get started\nand rent your favorite dresses',
+                  'Sign up to start renting your favorite outfits',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
                     color: AppTheme.textLight,
-                    height: 1.5,
+                    height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 48),
+                const SizedBox(height: 24),
 
                 // Inputs
                 CustomTextField(
@@ -265,7 +285,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 // Sign Up Button
                 SizedBox(
                   width: double.infinity,
-                  height: 56,
+                  height: 50,
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleSignup,
                     style: ElevatedButton.styleFrom(
@@ -277,8 +297,8 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                     child: _isLoading
                       ? const SizedBox(
-                          height: 24,
-                          width: 24,
+                          height: 20,
+                          width: 20,
                           child: CircularProgressIndicator(
                             color: AppTheme.textDark,
                             strokeWidth: 2,
@@ -287,7 +307,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       : Text(
                           'SIGN UP',
                           style: GoogleFonts.inter(
-                            fontSize: 16,
+                            fontSize: 13,
                             fontWeight: FontWeight.w800,
                             color: AppTheme.textDark,
                             letterSpacing: 0.5,
