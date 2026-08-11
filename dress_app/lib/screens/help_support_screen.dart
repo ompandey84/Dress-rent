@@ -6,6 +6,9 @@ import 'package:dress_app/theme.dart';
 import 'package:dress_app/screens/message_list_screen.dart';
 import 'package:dress_app/screens/support/support_ticket_screen.dart';
 import 'package:dress_app/screens/support/blocked_users_screen.dart';
+import 'package:dress_app/screens/change_password_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:dress_app/services/app_state.dart';
 
 class HelpSupportScreen extends StatelessWidget {
   const HelpSupportScreen({super.key});
@@ -104,6 +107,22 @@ class HelpSupportScreen extends StatelessWidget {
               subtitle: 'Verification, scam alerts, meetup tips',
               onTap: () => _showSafetyCenter(context),
             ),
+            // Change Password — moved here from the profile section per UX
+            // feedback. Hidden for guests since they don't have a password.
+            if (!context.watch<AppState>().isGuest)
+              _buildSupportOption(
+                icon: FluentIcons.lock_closed_24_regular,
+                title: 'Change password',
+                subtitle: 'Update your account password',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ChangePasswordScreen(),
+                    ),
+                  );
+                },
+              ),
             const SizedBox(height: 24),
 
             Text(

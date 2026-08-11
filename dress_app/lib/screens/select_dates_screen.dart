@@ -7,6 +7,12 @@ import 'package:dress_app/screens/booking_summary_screen.dart';
 import 'package:dress_app/models/cart_item.dart';
 import 'package:intl/intl.dart';
 
+/// Smart range picker:
+///   • tap once → set start
+///   • tap again → set end (if after start)
+///   • tap a date INSIDE the existing range → shrink the range
+///   • tap a date AFTER the end → extend the range
+///   • tap a date BEFORE the start → reset start
 class SelectDatesScreen extends StatefulWidget {
   final Product product;
   final String? selectedSize;
@@ -23,11 +29,9 @@ class SelectDatesScreen extends StatefulWidget {
 }
 
 class _SelectDatesScreenState extends State<SelectDatesScreen> {
-  // Real DateTime objects — calendar math is correct (handles month lengths,
-  // leap years, year rollover).
   DateTime? _startDate;
   DateTime? _endDate;
-  late DateTime _visibleMonth; // first day of the month currently shown
+  late DateTime _visibleMonth;
 
   @override
   void initState() {
@@ -46,7 +50,6 @@ class _SelectDatesScreenState extends State<SelectDatesScreen> {
 
   int get _rentalDays {
     if (_startDate == null || _endDate == null) return 0;
-    // Inclusive of both pickup and return: end - start + 1
     return _endDate!.difference(_startDate!).inDays + 1;
   }
 
@@ -61,29 +64,70 @@ class _SelectDatesScreenState extends State<SelectDatesScreen> {
   void _prevMonth() {
     final today = _today();
     final prev = DateTime(_visibleMonth.year, _visibleMonth.month - 1, 1);
-    // Don't allow scrolling into months fully before today
     if (prev.isBefore(DateTime(today.year, today.month, 1))) return;
     setState(() {
       _visibleMonth = prev;
     });
   }
 
+  /// Tap-to-extend / tap-to-shrink range behavior.
   void _onDayTapped(DateTime day) {
     final today = _today();
     if (day.isBefore(today)) return; // past date
+
     setState(() {
-      if (_startDate == null || (_startDate != null && _endDate != null)) {
-        // Start a fresh range
+      // No range yet → start a new one
+      if (_startDate == null) {
         _startDate = day;
         _endDate = null;
-      } else {
-        // We have a start but no end
+        return;
+      }
+
+      // No end yet → set end (clamping to start)
+      if (_endDate == null) {
         if (day.isBefore(_startDate!)) {
-          // Tapped before start → reset start
           _startDate = day;
         } else {
           _endDate = day;
         }
+        return;
+      }
+
+      // Full range exists — interpret the tap:
+      if (_isSameDay(day, _startDate!)) {
+        // Tapped on the start itself → reset (clear range)
+        _startDate = day;
+        _endDate = null;
+        return;
+      }
+      if (_isSameDay(day, _endDate!)) {
+        // Tapped on the end → shrink end by one day
+        if (_endDate!.isAfter(_startDate!)) {
+          _endDate = _endDate!.subtract(const Duration(days: 1));
+        } else {
+          _endDate = null;
+        }
+        return;
+      }
+      if (day.isAfter(_endDate!)) {
+        // Tapped AFTER the end → extend
+        _endDate = day;
+        return;
+      }
+      if (day.isBefore(_startDate!)) {
+        // Tapped BEFORE the start → reset start
+        _startDate = day;
+        return;
+      }
+      // Tapped INSIDE the range → shrink (remove that day)
+      // The new end becomes the day before the tapped day.
+      final newEnd = day.subtract(const Duration(days: 1));
+      if (newEnd.isBefore(_startDate!)) {
+        // Tapped the day after start → reset
+        _startDate = day;
+        _endDate = null;
+      } else {
+        _endDate = newEnd;
       }
     });
   }
@@ -100,9 +144,7 @@ class _SelectDatesScreenState extends State<SelectDatesScreen> {
   bool _isSameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
 
-  String _monthName(DateTime d) {
-    return DateFormat('MMMM yyyy').format(d);
-  }
+  String _monthName(DateTime d) => DateFormat('MMMM yyyy').format(d);
 
   String _dateLabel(DateTime? d) {
     if (d == null) return 'Select';
@@ -135,56 +177,52 @@ class _SelectDatesScreenState extends State<SelectDatesScreen> {
           ),
         ),
       ),
-      body: Stack(
+      body: Column(
         children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.only(
-              left: 20,
-              right: 20,
-              top: 12,
-              bottom: 120,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'When do you need it?',
-                  style: GoogleFonts.inter(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: AppTheme.textDark,
+          // Scrollable content takes the available space
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 12,
+                bottom: 120,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'When do you need it?',
+                    style: GoogleFonts.inter(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      color: AppTheme.textDark,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Pick a start and end date. Price updates as you choose.',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: AppTheme.textLight,
-                    height: 1.4,
+                  const SizedBox(height: 4),
+                  Text(
+                    'Tap a start, then an end. Tap a date inside to shorten, after to extend.',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: AppTheme.textLight,
+                      height: 1.4,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-
-                // Selected-range summary (always visible)
-                _buildRangeSummary(),
-                const SizedBox(height: 16),
-
-                _buildCalendar(),
-                const SizedBox(height: 16),
-                _buildLegend(),
-
-                const SizedBox(height: 16),
-                _buildPricePreview(),
-              ],
+                  const SizedBox(height: 16),
+                  _buildRangeSummary(),
+                  const SizedBox(height: 16),
+                  _buildCalendar(),
+                  const SizedBox(height: 16),
+                  _buildLegend(),
+                  const SizedBox(height: 16),
+                  _buildPricePreview(),
+                ],
+              ),
             ),
           ),
-
-          // Floating Bottom Button
-          Positioned(
-            bottom: 15,
-            left: 20,
-            right: 20,
+          // Floating bottom button
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
             child: Container(
               width: double.infinity,
               decoration: BoxDecoration(
@@ -243,10 +281,10 @@ class _SelectDatesScreenState extends State<SelectDatesScreen> {
                     borderRadius: BorderRadius.circular(100),
                   ),
                 ),
-                child: Center(
+                child: const Center(
                   child: Text(
                     'NEXT: ORDER PREPARATION',
-                    style: GoogleFonts.inter(
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w900,
                       color: AppTheme.textDark,
@@ -262,76 +300,47 @@ class _SelectDatesScreenState extends State<SelectDatesScreen> {
     );
   }
 
+  /// Redesigned pickup/return summary — two large stacked boxes with an
+  /// arrow connector. Reads cleanly on every screen size and is
+  /// unambiguously "start" and "end" instead of looking like a messy
+  /// single row with a vertical divider.
   Widget _buildRangeSummary() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppTheme.backgroundLight,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.border),
-      ),
+    return IntrinsicHeight(
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'PICKUP',
-                  style: GoogleFonts.inter(
-                    fontSize: 9,
-                    color: AppTheme.textLight,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.6,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  _dateLabel(_startDate),
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    color: _startDate == null
-                        ? AppTheme.textLight
-                        : AppTheme.textDark,
-                  ),
-                ),
-              ],
+            child: _DateCard(
+              label: 'PICKUP',
+              date: _dateLabel(_startDate),
+              weekday: _startDate == null
+                  ? null
+                  : DateFormat('EEE').format(_startDate!),
+              time: '10:00 AM',
+              icon: FluentIcons.arrow_upload_24_regular,
+              isActive: _startDate != null,
             ),
           ),
-          Container(
-            width: 1,
-            height: 28,
-            color: AppTheme.border,
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 6),
+            child: Center(
+              child: Icon(
+                FluentIcons.arrow_right_24_regular,
+                color: AppTheme.textLight,
+                size: 18,
+              ),
+            ),
           ),
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'RETURN',
-                    style: GoogleFonts.inter(
-                      fontSize: 9,
-                      color: AppTheme.textLight,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.6,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    _dateLabel(_endDate),
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                      color: _endDate == null
-                          ? AppTheme.textLight
-                          : AppTheme.textDark,
-                    ),
-                  ),
-                ],
-              ),
+            child: _DateCard(
+              label: 'RETURN',
+              date: _dateLabel(_endDate),
+              weekday: _endDate == null
+                  ? null
+                  : DateFormat('EEE').format(_endDate!),
+              time: '6:00 PM',
+              icon: FluentIcons.arrow_download_24_regular,
+              isActive: _endDate != null,
             ),
           ),
         ],
@@ -340,7 +349,6 @@ class _SelectDatesScreenState extends State<SelectDatesScreen> {
   }
 
   Widget _buildCalendar() {
-    // Compute leading blanks so the 1st of the month lands under the right weekday.
     final firstDayOfMonth = DateTime(
       _visibleMonth.year,
       _visibleMonth.month,
@@ -350,8 +358,8 @@ class _SelectDatesScreenState extends State<SelectDatesScreen> {
       _visibleMonth.year,
       _visibleMonth.month + 1,
       0,
-    ).day; // Day 0 of next month = last day of this month
-    final leadingBlanks = firstDayOfMonth.weekday % 7; // Sunday=0
+    ).day;
+    final leadingBlanks = firstDayOfMonth.weekday % 7;
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -513,21 +521,28 @@ class _SelectDatesScreenState extends State<SelectDatesScreen> {
   }
 
   Widget _buildLegend() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+    return Wrap(
+      spacing: 14,
+      runSpacing: 6,
+      alignment: WrapAlignment.center,
       children: [
-        _legendDot(AppTheme.primaryLime, 'Start/End'),
-        const SizedBox(width: 14),
+        _legendDot(AppTheme.primaryLime, 'Start / End'),
         _legendDot(
           AppTheme.primaryLime.withValues(alpha: 0.25),
-          'Rental period',
+          'Selected',
+        ),
+        _legendDot(
+          Colors.grey.shade300,
+          'Unavailable',
+          textColor: AppTheme.textLight,
         ),
       ],
     );
   }
 
-  Widget _legendDot(Color color, String label) {
+  Widget _legendDot(Color color, String label, {Color? textColor}) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           width: 8,
@@ -539,7 +554,7 @@ class _SelectDatesScreenState extends State<SelectDatesScreen> {
           label,
           style: GoogleFonts.inter(
             fontSize: 10,
-            color: AppTheme.textLight,
+            color: textColor ?? AppTheme.textLight,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -609,6 +624,85 @@ class _SelectDatesScreenState extends State<SelectDatesScreen> {
               ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Card used in the redesigned pickup/return summary row.
+class _DateCard extends StatelessWidget {
+  final String label;
+  final String date;
+  final String? weekday;
+  final String time;
+  final IconData icon;
+  final bool isActive;
+
+  const _DateCard({
+    required this.label,
+    required this.date,
+    required this.weekday,
+    required this.time,
+    required this.icon,
+    required this.isActive,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+      decoration: BoxDecoration(
+        color: isActive
+            ? AppTheme.primaryLime.withValues(alpha: 0.12)
+            : const Color(0xFFF6F8FA),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isActive
+              ? AppTheme.primaryLime
+              : Colors.grey.shade200,
+          width: isActive ? 1.5 : 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 12, color: AppTheme.textDark),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.8,
+                  color: AppTheme.textDark,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            date,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w900,
+              color: isActive ? AppTheme.textDark : AppTheme.textLight,
+            ),
+          ),
+          if (weekday != null) ...[
+            const SizedBox(height: 2),
+            Text(
+              '$weekday · $time',
+              style: GoogleFonts.inter(
+                fontSize: 9,
+                color: AppTheme.textLight,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ],
       ),
     );

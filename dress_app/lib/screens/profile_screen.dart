@@ -152,10 +152,6 @@ class ProfileScreen extends StatelessWidget {
                   ],
                   const SizedBox(height: 24),
 
-                  // Lend your wardrobe CTA (moved from home)
-                  _buildLendCta(context),
-                  const SizedBox(height: 20),
-
                   // Stats Cards
                   Row(
                     children: [
@@ -325,6 +321,10 @@ class ProfileScreen extends StatelessWidget {
                       'Help & Support',
                     ),
                   ),
+                  if (!user.isVendor) ...[
+                    const SizedBox(height: 10),
+                    _buildLendCta(context),
+                  ],
                   if (!user.isVendor) ...[
                     const SizedBox(height: 10),
                     GestureDetector(
@@ -515,74 +515,56 @@ class ProfileScreen extends StatelessWidget {
         );
       },
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF1C222B), Color(0xFF2E3A4A)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: const Color(0xFFF6F8FA),
           borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.grey.shade200),
         ),
         child: Row(
           children: [
             Container(
-              width: 36,
-              height: 36,
+              width: 40,
+              height: 40,
               alignment: Alignment.center,
               decoration: const BoxDecoration(
                 color: AppTheme.primaryLime,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                FluentIcons.tag_24_regular,
-                size: 16,
+                FluentIcons.clothes_hanger_24_regular,
                 color: AppTheme.textDark,
+                size: 20,
               ),
             ),
-            const SizedBox(width: 10),
-            Expanded(
+            const SizedBox(width: 12),
+            const Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Lend your wardrobe',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
+                    style: TextStyle(
+                      fontSize: 13,
                       fontWeight: FontWeight.w800,
-                      color: Colors.white,
+                      color: AppTheme.textDark,
                     ),
                   ),
-                  const SizedBox(height: 2),
                   Text(
-                    'Earn ₹3k–8k / month from idle outfits',
-                    style: GoogleFonts.inter(
+                    'Earn up to ₹100 / day on idle outfits',
+                    style: TextStyle(
                       fontSize: 10,
-                      color: Colors.white60,
-                      fontWeight: FontWeight.w500,
+                      color: AppTheme.textLight,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 9,
-                vertical: 4,
-              ),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryLime,
-                borderRadius: BorderRadius.circular(100),
-              ),
-              child: Text(
-                'START',
-                style: GoogleFonts.inter(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w900,
-                  color: AppTheme.textDark,
-                  letterSpacing: 0.6,
-                ),
-              ),
+            const Icon(
+              FluentIcons.chevron_right_24_regular,
+              color: AppTheme.textLight,
+              size: 18,
             ),
           ],
         ),

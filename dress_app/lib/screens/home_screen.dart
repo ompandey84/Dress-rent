@@ -7,11 +7,9 @@ import 'package:dress_app/theme.dart';
 import 'package:dress_app/models/product.dart';
 import 'package:dress_app/services/app_state.dart';
 import 'package:dress_app/services/database_service.dart';
-import 'package:dress_app/services/supabase_service.dart';
 import 'package:dress_app/screens/notifications_screen.dart';
 import 'package:dress_app/screens/search_results_screen.dart';
 import 'package:dress_app/screens/category_listing_screen.dart';
-import 'package:dress_app/screens/filters_bottom_sheet.dart';
 import 'package:dress_app/screens/login_screen.dart';
 import 'package:dress_app/screens/edit_profile_screen.dart';
 import 'package:dress_app/widgets/product_card.dart';
@@ -100,9 +98,6 @@ class _HomeScreenState extends State<HomeScreen> {
     await _fetchFirstPage();
   }
 
-  /// Pull mock products for offline / unconfigured mode.
-  List<Product> _mockFallback() => const <Product>[];
-
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
@@ -111,7 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final firstName = _firstNameOf(user.name, isGuest);
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
+      backgroundColor: AppTheme.backgroundLight,
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -134,27 +129,63 @@ class _HomeScreenState extends State<HomeScreen> {
               controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate([
-                      _buildHeader(
-                          context, firstName, user.avatarUrl, isGuest),
-                      const SizedBox(height: 20),
-                      _buildSearchBar(context),
-                      const SizedBox(height: 20),
-                      _buildCategoryChips(),
-                      const SizedBox(height: 20),
-                      _buildSectionTitle(context, 'New arrivals'),
-                      const SizedBox(height: 12),
-                    ]),
+                // Pinned header — greeting + avatar + notification
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _PinnedDelegate(
+                    height: 80,
+                    child: Container(
+                      color: Colors.white.withOpacity(0.96),
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+                      alignment: Alignment.center,
+                      child: _buildHeaderContent(
+                        firstName,
+                        user.avatarUrl,
+                        isGuest,
+                      ),
+                    ),
                   ),
                 ),
-                _buildProductSliver(),
-                SliverToBoxAdapter(
-                  child: _buildBottomLoader(),
+                // Pinned search bar
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _PinnedDelegate(
+                    height: 56,
+                    child: Container(
+                      color: Colors.white.withOpacity(0.96),
+                      padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                      alignment: Alignment.center,
+                      child: _buildSearchBar(),
+                    ),
+                  ),
                 ),
-                const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                // Pinned category chips
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _PinnedDelegate(
+                    height: 44,
+                    child: Container(
+                      color: Colors.white.withOpacity(0.96),
+                      padding: const EdgeInsets.only(bottom: 8),
+                      alignment: Alignment.center,
+                      child: _buildCategoryChips(),
+                    ),
+                  ),
+                ),
+                // Section title
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+                    child: _buildSectionTitle('New arrivals'),
+                  ),
+                ),
+                // Products
+                _buildProductSliver(),
+                // Bottom loader
+                SliverToBoxAdapter(child: _buildBottomLoader()),
+                // Bottom padding so the last row isn't hidden behind the
+                // floating bottom navigation bar.
+                const SliverToBoxAdapter(child: SizedBox(height: 120)),
               ],
             ),
           ),
@@ -234,16 +265,13 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisCount: 2,
           mainAxisSpacing: 16,
           crossAxisSpacing: 14,
-          childAspectRatio: 0.55,
+          childAspectRatio: 0.62,
         ),
         delegate: SliverChildBuilderDelegate(
           (context, index) {
-            // Use shorter image height for cards after the first row
-            // to give a staggered look. Index 0 is the first big card.
-            final imageHeight = index % 2 == 0 ? 200.0 : 150.0;
             return ProductCard(
               product: filtered[index],
-              imageHeight: imageHeight,
+              imageHeight: 200.0,
             );
           },
           childCount: filtered.length,
@@ -339,8 +367,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return parts.first;
   }
 
-  Widget _buildHeader(
-    BuildContext context,
+  Widget _buildHeaderContent(
     String firstName,
     String? avatarUrl,
     bool isGuest,
@@ -352,20 +379,25 @@ class _HomeScreenState extends State<HomeScreen> {
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Row(
                 children: [
-                  Text(
-                    'Hey $firstName!',
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w900,
-                      color: AppTheme.textDark,
-                      letterSpacing: -0.3,
+                  Flexible(
+                    child: Text(
+                      'Hey $firstName!',
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.textDark,
+                        letterSpacing: -0.3,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   const SizedBox(width: 4),
-                  const Text('👋', style: TextStyle(fontSize: 14)),
+                  const Text('👋', style: TextStyle(fontSize: 16)),
                 ],
               ),
               const SizedBox(height: 2),
@@ -374,53 +406,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     ? 'Sign in to access your rentals & wallet'
                     : 'Find your next outfit — rent it.',
                 style: GoogleFonts.inter(
-                  fontSize: 12,
+                  fontSize: 11,
                   color: AppTheme.textLight,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              if (isGuest) ...[
-                const SizedBox(height: 8),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const LoginScreen(),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 7,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppTheme.textDark,
-                      borderRadius: BorderRadius.circular(100),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          FluentIcons.arrow_right_24_regular,
-                          color: AppTheme.primaryLime,
-                          size: 12,
-                        ),
-                        const SizedBox(width: 5),
-                        Text(
-                          'SIGN IN',
-                          style: GoogleFonts.inter(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w900,
-                            color: AppTheme.primaryLime,
-                            letterSpacing: 0.8,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
             ],
           ),
         ),
@@ -438,16 +429,9 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Container(
                 width: 36,
                 height: 36,
-                decoration: BoxDecoration(
-                  color: Colors.white,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF1F4F7),
                   shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
                 ),
                 alignment: Alignment.center,
                 child: const Icon(
@@ -458,8 +442,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(width: 8),
-            // Tapping the avatar goes to edit profile so users can change
-            // their photo / name / phone from the home screen.
             GestureDetector(
               onTap: () {
                 if (isGuest) {
@@ -527,8 +509,9 @@ class _HomeScreenState extends State<HomeScreen> {
       'Bridal',
     ];
     return SizedBox(
-      height: 30,
+      height: 32,
       child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         scrollDirection: Axis.horizontal,
         itemCount: categories.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
@@ -567,18 +550,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSearchBar(BuildContext context) {
+  Widget _buildSearchBar() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color(0xFFF1F4F7),
         borderRadius: BorderRadius.circular(100),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: TextField(
         style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textDark),
@@ -597,32 +573,12 @@ class _HomeScreenState extends State<HomeScreen> {
           hintStyle:
               GoogleFonts.inter(color: AppTheme.textLight, fontSize: 13),
           border: InputBorder.none,
-          prefixIcon: Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Image.asset(
-              'assets/images/search_icon.png',
-              width: 18,
-              height: 18,
-              color: AppTheme.textDark,
-            ),
-          ),
-          suffixIcon: GestureDetector(
-            onTap: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (context) => const FiltersBottomSheet(),
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0),
-              child: Image.asset(
-                'assets/images/filter.png',
-                width: 18,
-                height: 18,
-                color: AppTheme.textDark,
-              ),
+          prefixIcon: const Padding(
+            padding: EdgeInsets.all(12.0),
+            child: Icon(
+              FluentIcons.search_24_regular,
+              size: 18,
+              color: AppTheme.textLight,
             ),
           ),
           contentPadding: const EdgeInsets.symmetric(vertical: 12),
@@ -631,18 +587,17 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSectionTitle(BuildContext context, String title) {
+  Widget _buildSectionTitle(String title) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
           title,
           style: GoogleFonts.inter(
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
+            fontSize: 16,
+            fontWeight: FontWeight.w900,
             color: AppTheme.textDark,
-            letterSpacing: -0.2,
+            letterSpacing: -0.3,
           ),
         ),
         GestureDetector(
@@ -651,35 +606,43 @@ class _HomeScreenState extends State<HomeScreen> {
               context,
               MaterialPageRoute(
                 builder: (_) => CategoryListingScreen(
-                  categoryName: _selectedCategory == 'All'
-                      ? 'All Items'
-                      : _selectedCategory,
+                  categoryName: _selectedCategory,
                 ),
               ),
             );
           },
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                'See all',
-                style: GoogleFonts.inter(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.textDark,
-                ),
-              ),
-              const SizedBox(width: 2),
-              const Icon(
-                FluentIcons.chevron_right_24_regular,
-                size: 12,
-                color: AppTheme.textDark,
-              ),
-            ],
+          child: Text(
+            'See all',
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.textLight,
+              decoration: TextDecoration.underline,
+            ),
           ),
         ),
       ],
     );
   }
+}
+
+// Single delegate for all three pinned header rows. Each instance has a
+// distinct height and a distinct child.
+class _PinnedDelegate extends SliverPersistentHeaderDelegate {
+  final double height;
+  final Widget child;
+
+  _PinnedDelegate({required this.height, required this.child});
+
+  @override
+  double get minExtent => height;
+  @override
+  double get maxExtent => height;
+  @override
+  Widget build(
+          BuildContext context, double shrinkOffset, bool overlapsContent) =>
+      child;
+  @override
+  bool shouldRebuild(covariant _PinnedDelegate oldDelegate) =>
+      oldDelegate.height != height || oldDelegate.child != child;
 }

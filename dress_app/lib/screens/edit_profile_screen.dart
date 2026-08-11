@@ -14,7 +14,6 @@ import 'package:dress_app/services/app_state.dart';
 import 'package:dress_app/services/auth_service.dart';
 import 'package:dress_app/services/storage_service.dart';
 import 'package:dress_app/models/user_profile.dart';
-import 'package:dress_app/screens/change_password_screen.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({Key? key}) : super(key: key);
@@ -264,69 +263,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         Validators.required(v, label: 'Location'),
                   ),
                   const SizedBox(height: 24),
-                  // Change Password Section
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'SECURITY',
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.textLight,
-                        letterSpacing: 1.0,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const ChangePasswordScreen(),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 14),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF6F8FA),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: Colors.grey.shade200),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(7),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                    FluentIcons.lock_closed_24_regular,
-                                    color: AppTheme.textDark,
-                                    size: 18),
-                              ),
-                              const SizedBox(width: 12),
-                              Text('Change Password',
-                                  style: GoogleFonts.inter(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppTheme.textDark)),
-                            ],
-                          ),
-                          const Icon(
-                              FluentIcons.chevron_right_24_regular,
-                              color: AppTheme.textLight,
-                              size: 18),
-                        ],
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),

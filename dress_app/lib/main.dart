@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:dress_app/theme.dart';
 import 'package:dress_app/screens/age_gate_screen.dart';
 import 'package:dress_app/screens/main_navigation.dart';
@@ -21,9 +22,14 @@ void main() async {
   await SupabaseService.initialize();
   // Cashfree will be initialized lazily on first payment
 
+  final appState = AppState();
+  // Hydrate session BEFORE first frame so the user stays signed in across
+  // app launches (fixes the "I get logged out when I close the app" bug).
+  await appState.hydrateSession();
+
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => AppState(),
+    ChangeNotifierProvider.value(
+      value: appState,
       child: const DressApp(),
     ),
   );
@@ -43,6 +49,18 @@ class _DressAppState extends State<DressApp> {
   void initState() {
     super.initState();
     _checkAge();
+    // Listen for auth state changes (sign in / sign out from anywhere in the
+    // app) and refresh the AppState so the UI stays in sync without a
+    // restart.
+    if (SupabaseService.isConfigured) {
+      SupabaseService.client.auth.onAuthStateChange.listen((event) {
+        if (event.event == AuthChangeEvent.signedOut) {
+          context.read<AppState>().signOut();
+        } else if (event.event == AuthChangeEvent.signedIn) {
+          context.read<AppState>().refreshProfile();
+        }
+      });
+    }
   }
 
   Future<void> _checkAge() async {

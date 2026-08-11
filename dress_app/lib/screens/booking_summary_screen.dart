@@ -22,7 +22,6 @@ class BookingSummaryScreen extends StatefulWidget {
 
 class _BookingSummaryScreenState extends State<BookingSummaryScreen> {
   late BookingPricing _pricing;
-  String _appliedPromo = '';
   final _promoController = TextEditingController();
   static const _currency = '₹';
 
@@ -109,7 +108,6 @@ class _BookingSummaryScreenState extends State<BookingSummaryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat('d MMM');
     final fullDateFormat = DateFormat('EEE, d MMM yyyy');
 
     return Scaffold(
@@ -244,6 +242,10 @@ class _BookingSummaryScreenState extends State<BookingSummaryScreen> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 24),
+
+                  // Rental terms (moved from the product page)
+                  _buildRentalTerms(),
                   const SizedBox(height: 24),
 
                   // Insurance
@@ -396,6 +398,45 @@ class _BookingSummaryScreenState extends State<BookingSummaryScreen> {
     );
   }
 
+  Widget _buildRentalTerms() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Rental terms',
+            style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.textDark)),
+        const SizedBox(height: 10),
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFF8E1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFFFE082)),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(FluentIcons.info_24_regular,
+                  size: 16, color: Color(0xFFE65100)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Full refund if cancelled 48h before rental start. Within 48h, 50% refund. No refund once item is shipped.',
+                  style: GoogleFonts.inter(
+                      fontSize: 11,
+                      color: AppTheme.textDark,
+                      height: 1.4),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildInsuranceCard() {
     final rentalDays = _pricing.rentalDays;
     final insuranceFee = BookingService().calculatePricing(
@@ -417,13 +458,35 @@ class _BookingSummaryScreenState extends State<BookingSummaryScreen> {
         ),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // RECOMMENDED pill at the very top of the section so it can't wrap
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: AppTheme.textDark,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                'RECOMMENDED',
+                style: GoogleFonts.inter(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  letterSpacing: 0.6,
+                ),
+              ),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.all(14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top row: icon + title + recommended + price + toggle
+                // Top row: icon + title + price + toggle
                 Row(
                   children: [
                     Container(
@@ -440,14 +503,28 @@ class _BookingSummaryScreenState extends State<BookingSummaryScreen> {
                     ),
                     const SizedBox(width: 10),
                     Expanded(
-                      child: Text(
-                        'Damage Protection',
-                        style: GoogleFonts.inter(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w900,
-                            color: AppTheme.textDark),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Damage Protection',
+                            style: GoogleFonts.inter(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w900,
+                                color: AppTheme.textDark),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Covers up to 100% of damage for just 5% of rental fee',
+                            style: GoogleFonts.inter(
+                                fontSize: 10, color: AppTheme.textLight),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
                     ),
                     if (_pricing.includeInsurance) ...[
@@ -493,40 +570,6 @@ class _BookingSummaryScreenState extends State<BookingSummaryScreen> {
                             ),
                           ],
                         ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                // Recommended badge + description on its own line so the
-                // RECOMMENDED pill never wraps to a new line on narrow screens
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppTheme.textDark,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        'RECOMMENDED',
-                        style: GoogleFonts.inter(
-                          fontSize: 8,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Covers up to 100% of damage for just 5% of rental fee',
-                        style: GoogleFonts.inter(
-                            fontSize: 11, color: AppTheme.textLight),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
@@ -660,8 +703,49 @@ class _BookingSummaryScreenState extends State<BookingSummaryScreen> {
   }
 
   /// Wallet section: shows available balance, deposit coverage, and a quick
-  /// top-up row if the balance is short.
+  /// top-up row if the balance is short. Hidden when this product has no
+  /// security deposit (deposit = 0).
   Widget _buildWalletSection() {
+    // No deposit required for this listing — skip the entire wallet block.
+    if (_pricing.securityDeposit <= 0) {
+      return Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFEFF8F4),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFCBE9D8)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(
+                  color: Color(0xFF2E7D5B), shape: BoxShape.circle),
+              child: const Icon(FluentIcons.checkmark_24_regular,
+                  color: Colors.white, size: 18),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('No deposit needed',
+                      style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                          color: AppTheme.textDark)),
+                  Text('This item is fully covered by the rental fee.',
+                      style: GoogleFonts.inter(
+                          fontSize: 11, color: AppTheme.textLight)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
     if (!_walletChecked) {
       return Container(
         padding: const EdgeInsets.all(16),

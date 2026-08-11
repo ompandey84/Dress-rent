@@ -108,7 +108,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
           slivers: [
             SliverToBoxAdapter(child: _buildImageCarousel()),
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 140),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   _buildTitleAndPrice(),
@@ -128,8 +128,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   ],
                   const SizedBox(height: 20),
                   _buildHighlights(),
-                  const SizedBox(height: 20),
-                  _buildRentalTerms(),
                   const SizedBox(height: 24),
                   _buildSimilarItems(),
                 ]),
@@ -841,42 +839,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   }
 
   Widget _buildRentalTerms() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Rental terms',
-            style: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.w800,
-                color: AppTheme.textDark)),
-        const SizedBox(height: 10),
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFF8E1),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFFFE082)),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Icon(FluentIcons.info_24_regular,
-                  size: 16, color: Color(0xFFE65100)),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Full refund if cancelled 48h before rental start. Within 48h, 50% refund. No refund once item is shipped.',
-                  style: GoogleFonts.inter(
-                      fontSize: 11,
-                      color: AppTheme.textDark,
-                      height: 1.4),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
+    // Rental terms were moved to the booking summary page so the product
+    // page stays focused on the product. Kept as a no-op stub in case
+    // other call-sites still reference it.
+    return const SizedBox.shrink();
   }
 
   Widget _buildSimilarItems() {
@@ -943,51 +909,35 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   }
 
   Widget _buildFloatingBottomBar() {
-    return SafeArea(
-      top: false,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Color(0x14000000),
-              blurRadius: 14,
-              offset: Offset(0, -2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            // Chat button (rectangle pill, fully visible)
-            GestureDetector(
-              onTap: _openChat,
+    // Two floating circular buttons that hover over the content instead of
+    // sitting on a solid white bar — same pattern as Instagram / Myntra.
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 18, left: 4, right: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Chat — circular floating button (left)
+          _buildFloatingAction(
+            icon: FluentIcons.chat_24_regular,
+            background: Colors.white,
+            iconColor: AppTheme.textDark,
+            onTap: _openChat,
+          ),
+          // SELECT DATES — large lime pill, also floating
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEAF1F5),
-                  shape: BoxShape.circle,
-                ),
-                alignment: Alignment.center,
-                child: const Icon(
-                  FluentIcons.chat_24_regular,
-                  color: AppTheme.textDark,
-                  size: 22,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Container(
+                height: 56,
                 decoration: BoxDecoration(
                   color: AppTheme.primaryLime,
                   borderRadius: BorderRadius.circular(100),
                   boxShadow: [
                     BoxShadow(
-                      color: AppTheme.primaryLime.withOpacity(0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 6),
+                      color: AppTheme.primaryLime.withOpacity(0.4),
+                      blurRadius: 18,
+                      offset: const Offset(0, 8),
                     ),
                   ],
                 ),
@@ -1007,7 +957,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.transparent,
                     shadowColor: Colors.transparent,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(100)),
                   ),
@@ -1035,8 +985,52 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 ),
               ),
             ),
+          ),
+          // Profile / lender avatar — circular floating button (right)
+          _buildFloatingAction(
+            icon: FluentIcons.person_24_regular,
+            background: Colors.white,
+            iconColor: AppTheme.textDark,
+            onTap: () => _openStoreDetail(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFloatingAction({
+    required IconData icon,
+    required Color background,
+    required Color iconColor,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 56,
+        height: 56,
+        decoration: BoxDecoration(
+          color: background,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.12),
+              blurRadius: 14,
+              offset: const Offset(0, 4),
+            ),
           ],
         ),
+        alignment: Alignment.center,
+        child: Icon(icon, color: iconColor, size: 22),
+      ),
+    );
+  }
+
+  void _openStoreDetail() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => StoreDetailScreen(storeName: widget.product.storeName),
       ),
     );
   }

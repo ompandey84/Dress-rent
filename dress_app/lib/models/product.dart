@@ -64,12 +64,34 @@ class Product {
     }
     // Fallback: a single `image_url` / `images` / `thumbnail` field
     if (parsedImages.isEmpty) {
-      for (final k in ['image_url', 'images', 'thumbnail', 'cover_image_url']) {
+      for (final k in [
+        'image_url', 'cover_image_url', 'thumbnail', 'photo_url',
+        'image', 'cover_photo', 'photo',
+      ]) {
         final v = json[k];
         if (v is String && v.isNotEmpty) {
           parsedImages.add(v);
           break;
         }
+      }
+    }
+    // Fallback: `images` field that may be a List<String> or a JSON-encoded list
+    if (parsedImages.isEmpty) {
+      final imgs2 = json['images'];
+      if (imgs2 is List) {
+        for (final img in imgs2) {
+          if (img is String && img.isNotEmpty) parsedImages.add(img);
+          if (img is Map && img['image_url'] != null) parsedImages.add(img['image_url'].toString());
+        }
+      } else if (imgs2 is String && imgs2.startsWith('[')) {
+        // JSON array stored as text in the DB column
+        try {
+          // Simple extraction: grab URLs between quotes
+          final matches = RegExp(r'"(https?://[^"]+)"').allMatches(imgs2);
+          for (final m in matches) {
+            parsedImages.add(m.group(1)!);
+          }
+        } catch (_) {}
       }
     }
 

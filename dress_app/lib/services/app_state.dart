@@ -47,22 +47,30 @@ class AppState extends ChangeNotifier {
 
   AppState() {
     _orders = List.of(MockDataService.mockOrders);
-    _restoreSession();
   }
 
-  Future<void> _restoreSession() async {
+  /// Called once from main() before the first frame. Hydrates from
+  /// SharedPreferences + Supabase session so the user stays signed in across
+  /// app restarts.
+  Future<void> hydrateSession() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       _hasChosenGuest = prefs.getBool('is_guest') ?? false;
-      // If a real auth session is alive, hydrate the profile.
       if (SupabaseService.isConfigured) {
-        final user = AuthService().currentUser;
-        if (user != null) {
-          await refreshProfile();
+        // Supabase auto-restores the session from local storage on first
+        // access. We touch `currentSession` to force the restore and then
+        // ask for the current user — that's enough to bring the user
+        // back as authenticated on app launch.
+        final session = SupabaseService.client.auth.currentSession;
+        if (session != null) {
+          final user = AuthService().currentUser;
+          if (user != null) {
+            await refreshProfile();
+          }
         }
       }
-      notifyListeners();
     } catch (_) {/* ignore */}
+    notifyListeners();
   }
 
   /// User explicitly chose to browse as guest. Persist so they don't have
