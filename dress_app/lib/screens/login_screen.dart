@@ -4,6 +4,8 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:dress_app/theme.dart';
 import 'package:dress_app/widgets/custom_text_field.dart';
+import 'package:dress_app/widgets/error_dialog.dart';
+import 'package:dress_app/utils/validators.dart';
 import 'package:dress_app/screens/main_navigation.dart';
 import 'package:dress_app/screens/signup_screen.dart';
 import 'package:dress_app/screens/forgot_password_screen.dart';
@@ -70,11 +72,13 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(e.toString().replaceAll('Exception: ', '')),
-              backgroundColor: Colors.red,
-            )
+          final desc = ErrorDialog.describe(e);
+          await ErrorDialog.show(
+            context,
+            title: desc.title,
+            message: desc.message,
+            technical: e.toString(),
+            onRetry: _handleLogin,
           );
         }
       } finally {
@@ -167,15 +171,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   hintText: 'Enter text here',
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  validator: (val) {
-                    if (val == null || val.trim().isEmpty) {
-                      return 'Please enter your email';
-                    }
-                    if (!val.contains('@')) {
-                      return 'Please enter a valid email';
-                    }
-                    return null;
-                  },
+                  validator: Validators.email,
                 ),
                 const SizedBox(height: 24),
                 CustomTextField(
@@ -183,12 +179,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   hintText: '••••••••',
                   isPassword: _obscurePassword,
                   controller: _passwordController,
-                  validator: (val) {
-                    if (val == null || val.trim().isEmpty) {
-                      return 'Please enter your password';
-                    }
-                    return null;
-                  },
+                  validator: (val) =>
+                      Validators.required(val, label: 'Password'),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword ? FluentIcons.eye_off_24_regular : FluentIcons.eye_24_regular,

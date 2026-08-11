@@ -260,8 +260,12 @@ class WalletService {
     required String bookingId,
     double amountToChargeExternally = 0,
   }) async {
-    if (amount <= 0) throw ArgumentError('Deposit must be > 0');
     final userId = AuthService().currentUserId ?? 'mock_user';
+
+    // No deposit required for this booking — no-op.
+    if (amount <= 0) {
+      return (held: 0.0, shortfall: 0.0, externalTopup: 0.0);
+    }
 
     if (!SupabaseService.isConfigured) {
       // 1. Top up if needed

@@ -4,6 +4,8 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:dress_app/theme.dart';
 import 'package:dress_app/widgets/custom_text_field.dart';
+import 'package:dress_app/widgets/error_dialog.dart';
+import 'package:dress_app/utils/validators.dart';
 import 'package:dress_app/screens/main_navigation.dart';
 import 'package:dress_app/screens/legal_content_screen.dart';
 import 'package:dress_app/services/auth_service.dart';
@@ -83,11 +85,14 @@ class _SignupScreenState extends State<SignupScreen> {
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(e.toString().replaceAll('Exception: Failed to sign up: ', '')),
-              backgroundColor: Colors.red,
-            )
+          final desc = ErrorDialog.describe(e);
+          await ErrorDialog.show(
+            context,
+            title: desc.title,
+            message: desc.message,
+            technical: e.toString(),
+            onRetry: _handleSignup,
+            retryLabel: 'TRY AGAIN',
           );
         }
       } finally {
@@ -149,12 +154,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   label: 'Full Name',
                   hintText: 'John Doe',
                   controller: _nameController,
-                  validator: (val) {
-                    if (val == null || val.trim().isEmpty) {
-                      return 'Please enter your name';
-                    }
-                    return null;
-                  },
+                  validator: (v) => Validators.name(v, label: 'Full name'),
                 ),
                 const SizedBox(height: 24),
                 CustomTextField(
@@ -162,15 +162,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   hintText: 'Enter your email',
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  validator: (val) {
-                    if (val == null || val.trim().isEmpty) {
-                      return 'Please enter your email';
-                    }
-                    if (!val.contains('@')) {
-                      return 'Please enter a valid email';
-                    }
-                    return null;
-                  },
+                  validator: Validators.email,
                 ),
                 const SizedBox(height: 24),
                 CustomTextField(
@@ -178,15 +170,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   hintText: '••••••••',
                   isPassword: _obscurePassword,
                   controller: _passwordController,
-                  validator: (val) {
-                    if (val == null || val.trim().isEmpty) {
-                      return 'Please enter your password';
-                    }
-                    if (val.length < 6) {
-                      return 'Password must be at least 6 characters';
-                    }
-                    return null;
-                  },
+                  validator: (v) => Validators.password(v),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword ? FluentIcons.eye_off_24_regular : FluentIcons.eye_24_regular,
@@ -206,15 +190,8 @@ class _SignupScreenState extends State<SignupScreen> {
                   hintText: '••••••••',
                   isPassword: _obscureConfirmPassword,
                   controller: _confirmPasswordController,
-                  validator: (val) {
-                    if (val == null || val.trim().isEmpty) {
-                      return 'Please confirm your password';
-                    }
-                    if (val != _passwordController.text) {
-                      return 'Passwords do not match';
-                    }
-                    return null;
-                  },
+                  validator: (v) =>
+                      Validators.confirmPassword(v, _passwordController.text),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscureConfirmPassword ? FluentIcons.eye_off_24_regular : FluentIcons.eye_24_regular,

@@ -11,6 +11,7 @@ import 'package:dress_app/services/cashfree_service.dart';
 import 'package:dress_app/services/wallet_service.dart';
 import 'package:dress_app/screens/booking_confirmed_screen.dart';
 import 'package:dress_app/screens/main_navigation.dart';
+import 'package:dress_app/widgets/error_dialog.dart';
 import 'package:provider/provider.dart';
 
 /// Payment screen — opens Cashfree checkout (or mock success in dev mode).
@@ -66,8 +67,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
         await WalletService().topUp(amount: widget.walletTopUp, source: 'cashfree_topup');
       }
 
-      // 3. Lock the deposit in the wallet (held as escrow for this booking)
-      if (widget.useWalletForDeposit) {
+      // 3. Lock the deposit in the wallet (held as escrow for this booking).
+      //    Skip if the product has no deposit (deposit == 0) — many items
+      //    don't require a security deposit.
+      if (widget.useWalletForDeposit && widget.pricing.securityDeposit > 0) {
         final wallet = WalletService();
         final shortfall = await wallet.depositShortfall(widget.pricing.securityDeposit);
         await wallet.lockDeposit(
@@ -112,11 +115,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Payment failed: $e'),
-            backgroundColor: Colors.red,
-          ),
+        final desc = ErrorDialog.describe(e);
+        await ErrorDialog.show(
+          context,
+          title: desc.title,
+          message: desc.message,
+          technical: e.toString(),
+          onRetry: _processPayment,
+          retryLabel: 'RETRY PAYMENT',
         );
       }
     } finally {

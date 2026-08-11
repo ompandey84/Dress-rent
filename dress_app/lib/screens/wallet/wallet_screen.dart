@@ -129,6 +129,7 @@ class _WalletScreenState extends State<WalletScreen> {
               child: CircularProgressIndicator(color: AppTheme.primaryLime),
             )
           : RefreshIndicator(
+              color: AppTheme.primaryLime,
               onRefresh: _load,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),

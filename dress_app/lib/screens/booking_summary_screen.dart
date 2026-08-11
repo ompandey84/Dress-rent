@@ -419,81 +419,117 @@ class _BookingSummaryScreenState extends State<BookingSummaryScreen> {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryLime.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(FluentIcons.shield_checkmark_24_regular, color: AppTheme.textDark, size: 20),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text('Damage Protection', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: AppTheme.textDark), overflow: TextOverflow.ellipsis),
-                          ),
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppTheme.textDark,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text('RECOMMENDED',
-                                style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 0.5)),
-                          ),
-                        ],
+                // Top row: icon + title + recommended + price + toggle
+                Row(
+                  children: [
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryLime.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      const SizedBox(height: 2),
+                      child: const Icon(
+                          FluentIcons.shield_checkmark_24_regular,
+                          color: AppTheme.textDark,
+                          size: 18),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Damage Protection',
+                        style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900,
+                            color: AppTheme.textDark),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (_pricing.includeInsurance) ...[
                       Text(
-                        'Covers up to 100% of damage for just 5% of rental fee',
-                        style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textLight),
+                        '+₹${insuranceFee.toStringAsFixed(0)}',
+                        style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900,
+                            color: AppTheme.textDark),
                       ),
+                      const SizedBox(width: 8),
                     ],
-                  ),
-                ),
-                if (_pricing.includeInsurance) ...[
-                  Text('+₹${insuranceFee.toStringAsFixed(0)}',
-                      style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w900, color: AppTheme.textDark)),
-                  const SizedBox(width: 8),
-                ],
-                // Inline toggle — taps directly add/remove, no separate page
-                GestureDetector(
-                  onTap: () => _recalculate(includeInsurance: !_pricing.includeInsurance),
-                  child: Container(
-                    width: 48,
-                    height: 28,
-                    padding: const EdgeInsets.all(3),
-                    decoration: BoxDecoration(
-                      color: _pricing.includeInsurance ? AppTheme.textDark : Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(100),
-                    ),
-                    child: Stack(
-                      children: [
-                        AnimatedAlign(
-                          duration: const Duration(milliseconds: 180),
-                          alignment: _pricing.includeInsurance ? Alignment.centerRight : Alignment.centerLeft,
-                          child: Container(
-                            width: 22,
-                            height: 22,
-                            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                            child: _pricing.includeInsurance
-                                ? const Icon(Icons.check, size: 14, color: AppTheme.textDark)
-                                : null,
-                          ),
+                    GestureDetector(
+                      onTap: () => _recalculate(
+                          includeInsurance: !_pricing.includeInsurance),
+                      child: Container(
+                        width: 44,
+                        height: 26,
+                        padding: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          color: _pricing.includeInsurance
+                              ? AppTheme.textDark
+                              : Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(100),
                         ),
-                      ],
+                        child: Stack(
+                          children: [
+                            AnimatedAlign(
+                              duration: const Duration(milliseconds: 180),
+                              alignment: _pricing.includeInsurance
+                                  ? Alignment.centerRight
+                                  : Alignment.centerLeft,
+                              child: Container(
+                                width: 20,
+                                height: 20,
+                                decoration: const BoxDecoration(
+                                    color: Colors.white, shape: BoxShape.circle),
+                                child: _pricing.includeInsurance
+                                    ? const Icon(Icons.check,
+                                        size: 12, color: AppTheme.textDark)
+                                    : null,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                // Recommended badge + description on its own line so the
+                // RECOMMENDED pill never wraps to a new line on narrow screens
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppTheme.textDark,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        'RECOMMENDED',
+                        style: GoogleFonts.inter(
+                          fontSize: 8,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Covers up to 100% of damage for just 5% of rental fee',
+                        style: GoogleFonts.inter(
+                            fontSize: 11, color: AppTheme.textLight),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -502,15 +538,21 @@ class _BookingSummaryScreenState extends State<BookingSummaryScreen> {
           Theme(
             data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
             child: ExpansionTile(
-              tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-              childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              tilePadding: const EdgeInsets.symmetric(horizontal: 14),
+              childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
               shape: const Border(),
               collapsedShape: const Border(),
               title: Row(
                 children: [
-                  const Icon(FluentIcons.document_24_regular, size: 14, color: AppTheme.textLight),
+                  const Icon(FluentIcons.document_24_regular,
+                      size: 13, color: AppTheme.textLight),
                   const SizedBox(width: 6),
-                  Text('Read full T&Cs', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w800, color: AppTheme.textLight, decoration: TextDecoration.underline)),
+                  Text('Read full T&Cs',
+                      style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.textLight,
+                          decoration: TextDecoration.underline)),
                 ],
               ),
               children: [
@@ -523,11 +565,16 @@ class _BookingSummaryScreenState extends State<BookingSummaryScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _tc('Covers accidental stains (wine, food, makeup), small tears, color transfer, broken zippers & buttons up to 100% of item value.'),
-                      _tc('Does NOT cover: lost items, intentional damage, normal wear & tear, alterations made by renter.'),
-                      _tc('Claim must be filed within 24 hours of return with photo evidence. Lender verifies and approves the claim.'),
-                      _tc('Premium = 5% of rental subtotal (₹${(widget.product.rentalPricePerDay * rentalDays * 0.05).toStringAsFixed(0)} for this booking).'),
-                      _tc('By toggling ON, you agree to the Damage Protection terms. Toggle is instant — no extra page.'),
+                      _tc(
+                          'Covers accidental stains (wine, food, makeup), small tears, color transfer, broken zippers & buttons up to 100% of item value.'),
+                      _tc(
+                          'Does NOT cover: lost items, intentional damage, normal wear & tear, alterations made by renter.'),
+                      _tc(
+                          'Claim must be filed within 24 hours of return with photo evidence. Lender verifies and approves the claim.'),
+                      _tc(
+                          'Premium = 5% of rental subtotal (₹${(widget.product.rentalPricePerDay * rentalDays * 0.05).toStringAsFixed(0)} for this booking).'),
+                      _tc(
+                          'By toggling ON, you agree to the Damage Protection terms. Toggle is instant — no extra page.'),
                     ],
                   ),
                 ),

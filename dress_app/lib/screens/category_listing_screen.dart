@@ -29,16 +29,16 @@ class _CategoryListingScreenState extends State<CategoryListingScreen> {
     setState(() {
       _isLoading = true;
     });
-    
+
     try {
       final db = DatabaseService();
       // Since our getProducts filters by categoryId not name,
       // and we don't have exact category slugs yet, we'll fetch all and filter locally
       final rawProducts = await db.getProducts();
       final allProducts = rawProducts.map((p) => Product.fromJson(p)).toList();
-      
+
       final String categoryLower = widget.categoryName.toLowerCase();
-      
+
       setState(() {
         if (categoryLower == 'all' ||
             categoryLower == 'all items' ||
@@ -57,6 +57,11 @@ class _CategoryListingScreenState extends State<CategoryListingScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  /// Used by pull-to-refresh
+  Future<void> _loadProducts() async {
+    await _fetchCategoryProducts();
   }
 
   void _showFilters() {
@@ -119,26 +124,34 @@ class _CategoryListingScreenState extends State<CategoryListingScreen> {
             ),
           ),
           Expanded(
-            child: _products.isEmpty 
+            child: _products.isEmpty
               ? Center(
                   child: Text(
                     'No dresses found in ${widget.categoryName}.',
                     style: GoogleFonts.inter(color: AppTheme.textLight, fontSize: 16),
                   ),
                 )
-              : GridView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 24,
-                childAspectRatio: 0.5,
-              ),
-              itemCount: _products.length,
-              itemBuilder: (context, index) {
-                return ProductCard(product: _products[index], imageHeight: 200);
-              },
-            ),
+              : RefreshIndicator(
+                  color: AppTheme.primaryLime,
+                  onRefresh: _loadProducts,
+                  child: GridView.builder(
+                    // AlwaysScrollable so pull-to-refresh works on short lists
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 24,
+                      childAspectRatio: 0.5,
+                    ),
+                    itemCount: _products.length,
+                    itemBuilder: (context, index) {
+                      return ProductCard(
+                          product: _products[index], imageHeight: 200);
+                    },
+                  ),
+                ),
           ),
         ],
       ),
