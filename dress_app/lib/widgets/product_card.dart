@@ -37,47 +37,46 @@ class ProductCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Image + price capsule stack — capsule sits flush with image bottom
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              ClipPath(
-                clipper: const ImageCutoutClipper(),
-                child: _ProductImage(
+          // Image with overlaid heart + price pill — no gap below image
+          ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Stack(
+              children: [
+                _ProductImage(
                   imageUrl: imgUrl,
                   height: imageHeight,
                 ),
-              ),
-              // Heart top-right
-              Positioned(
-                top: 10,
-                right: 10,
-                child: FavoriteButton(productId: product.id ?? ''),
-              ),
-              // Price capsule flush with image bottom edge
-              Positioned(
-                bottom: 0,
-                right: 8,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryLime,
-                    borderRadius: BorderRadius.circular(100),
-                  ),
-                  child: Text(
-                    '₹${price.toStringAsFixed(0)}',
-                    style: GoogleFonts.inter(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 11,
-                      color: AppTheme.textDark,
+                // Heart top-right
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: FavoriteButton(productId: product.id ?? ''),
+                ),
+                // Price pill — overlaid on bottom-right inside the image
+                Positioned(
+                  bottom: 8,
+                  right: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryLime,
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                    child: Text(
+                      '₹${price.toStringAsFixed(0)}',
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11,
+                        color: AppTheme.textDark,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           // Tiny gap only — 90% smaller than before
           const SizedBox(height: 6),
@@ -196,65 +195,4 @@ class _ProductImage extends StatelessWidget {
   }
 }
 
-class ImageCutoutClipper extends CustomClipper<Path> {
-  const ImageCutoutClipper();
-
-  @override
-  Path getClip(Size size) {
-    final path = Path();
-    const double r = 24.0;
-    const double cvx = 16.0;
-    const double ir = 14.0;
-    const double cw = 124.0;
-    const double ch = 54.0;
-
-    path.moveTo(r, 0);
-    path.lineTo(size.width - r, 0);
-    path.arcToPoint(
-      Offset(size.width, r),
-      radius: const Radius.circular(r),
-      clockwise: true,
-    );
-
-    path.lineTo(size.width, size.height - ch - cvx);
-    path.arcToPoint(
-      Offset(size.width - cvx, size.height - ch),
-      radius: const Radius.circular(cvx),
-      clockwise: true,
-    );
-
-    path.lineTo(size.width - cw + ir, size.height - ch);
-    path.arcToPoint(
-      Offset(size.width - cw, size.height - ch + ir),
-      radius: const Radius.circular(ir),
-      clockwise: false,
-    );
-
-    path.lineTo(size.width - cw, size.height - cvx);
-    path.arcToPoint(
-      Offset(size.width - cw - cvx, size.height),
-      radius: const Radius.circular(cvx),
-      clockwise: true,
-    );
-
-    path.lineTo(r, size.height);
-    path.arcToPoint(
-      Offset(0, size.height - r),
-      radius: const Radius.circular(r),
-      clockwise: true,
-    );
-
-    path.lineTo(0, r);
-    path.arcToPoint(
-      Offset(r, 0),
-      radius: const Radius.circular(r),
-      clockwise: true,
-    );
-
-    path.close();
-    return path;
-  }
-
-  @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
-}
+// ImageCutoutClipper removed — price is now overlaid inside the image itself.
