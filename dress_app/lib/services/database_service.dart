@@ -164,6 +164,12 @@ class DatabaseService {
           .order('created_at', ascending: false)
           .range(offset, offset + limit - 1);
       final list = (res as List).cast<Map<String, dynamic>>();
+      if (list.isEmpty && offset == 0) {
+        final products = MockDataService.mockProducts;
+        final mockList = products.map((p) => _productToMap(p)).toList();
+        final end = limit.clamp(0, mockList.length);
+        return mockList.sublist(0, end);
+      }
       return list;
     } catch (e) {
       // Schema mismatch or RLS issue — fall back to bare select so the
@@ -174,8 +180,21 @@ class DatabaseService {
             .select('*')
             .order('created_at', ascending: false)
             .range(offset, offset + limit - 1);
-        return (res as List).cast<Map<String, dynamic>>();
+        final list = (res as List).cast<Map<String, dynamic>>();
+        if (list.isEmpty && offset == 0) {
+          final products = MockDataService.mockProducts;
+          final mockList = products.map((p) => _productToMap(p)).toList();
+          final end = limit.clamp(0, mockList.length);
+          return mockList.sublist(0, end);
+        }
+        return list;
       } catch (_) {
+        if (offset == 0) {
+          final products = MockDataService.mockProducts;
+          final mockList = products.map((p) => _productToMap(p)).toList();
+          final end = limit.clamp(0, mockList.length);
+          return mockList.sublist(0, end);
+        }
         return [];
       }
     }
