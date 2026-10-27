@@ -12,6 +12,7 @@ import 'package:dress_app/services/wallet_service.dart';
 import 'package:dress_app/screens/booking_confirmed_screen.dart';
 import 'package:dress_app/screens/main_navigation.dart';
 import 'package:dress_app/widgets/error_dialog.dart';
+import 'package:dress_app/utils/auth_guard.dart';
 import 'package:provider/provider.dart';
 
 /// Payment screen — opens Cashfree checkout (or mock success in dev mode).
@@ -50,6 +51,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
   ];
 
   Future<void> _processPayment() async {
+    final appState = context.read<AppState>();
+    if (appState.isGuest) {
+      final loggedIn = await AuthGuard.requireLogin(
+        context,
+        message: 'Please sign in to complete your payment and confirm booking.',
+      );
+      if (!loggedIn || !mounted) return;
+    }
+
     setState(() => _processing = true);
 
     try {
