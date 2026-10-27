@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import '../theme.dart';
 
 class UsersScreen extends StatefulWidget {
@@ -15,12 +14,14 @@ class _UsersScreenState extends State<UsersScreen> {
   final _search = TextEditingController();
 
   final _mockUsers = [
-    {'name': 'Ananya Sharma', 'role': 'lender', 'verified': true, 'bookings': 23, 'rating': 4.8, 'avatar': 'https://i.pravatar.cc/150?img=1'},
-    {'name': 'Priya Kapoor', 'role': 'lender', 'verified': true, 'bookings': 41, 'rating': 4.9, 'avatar': 'https://i.pravatar.cc/150?img=5'},
-    {'name': 'Sneha Reddy', 'role': 'renter', 'verified': true, 'bookings': 12, 'rating': 4.7, 'avatar': 'https://i.pravatar.cc/150?img=10'},
-    {'name': 'Tara Mehta', 'role': 'renter', 'verified': false, 'bookings': 3, 'rating': 4.2, 'avatar': 'https://i.pravatar.cc/150?img=20'},
-    {'name': 'Aarav Patel', 'role': 'both', 'verified': true, 'bookings': 18, 'rating': 4.6, 'avatar': 'https://i.pravatar.cc/150?img=12'},
-    {'name': 'Kavya Iyer', 'role': 'lender', 'verified': false, 'bookings': 0, 'rating': 0.0, 'avatar': 'https://i.pravatar.cc/150?img=25'},
+    {'name': 'The Luxe Vault (Boutique)', 'role': 'lender', 'verified': true, 'bookings': 68, 'rating': 4.9, 'avatar': 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=150'},
+    {'name': 'Aisha Sharma', 'role': 'both', 'verified': true, 'bookings': 18, 'rating': 4.9, 'avatar': 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150'},
+    {'name': 'Virasat Weaves (Jaipur)', 'role': 'lender', 'verified': true, 'bookings': 42, 'rating': 4.8, 'avatar': 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=150'},
+    {'name': 'Priya Kapoor', 'role': 'lender', 'verified': true, 'bookings': 31, 'rating': 4.9, 'avatar': 'https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=150'},
+    {'name': 'Sneha Reddy', 'role': 'renter', 'verified': true, 'bookings': 14, 'rating': 4.8, 'avatar': 'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=150'},
+    {'name': 'Heritage Loom Studio', 'role': 'lender', 'verified': true, 'bookings': 27, 'rating': 5.0, 'avatar': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150'},
+    {'name': 'Tara Mehta', 'role': 'renter', 'verified': true, 'bookings': 7, 'rating': 4.6, 'avatar': 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150'},
+    {'name': 'Chic Runway Studio', 'role': 'lender', 'verified': true, 'bookings': 54, 'rating': 4.8, 'avatar': 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=150'},
   ];
 
   @override
