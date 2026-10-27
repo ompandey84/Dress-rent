@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dress_app/models/cart_item.dart';
 import 'package:dress_app/services/app_state.dart';
 import 'package:dress_app/screens/select_dates_screen.dart';
+import 'package:dress_app/utils/auth_guard.dart';
 import 'package:provider/provider.dart';
 
 class CartScreen extends StatefulWidget {
@@ -19,6 +20,13 @@ class _CartScreenState extends State<CartScreen> {
   static const _currency = '₹';
 
   Future<void> _proceedToCheckout() async {
+    // Require login before checkout
+    if (!await AuthGuard.requireLogin(
+      context,
+      message: 'Please sign in to checkout. You need an account to place orders and track deliveries.',
+    )) return;
+    if (!mounted) return;
+
     final cartItems = context.read<AppState>().cartItems;
     if (cartItems.isEmpty) return;
 
