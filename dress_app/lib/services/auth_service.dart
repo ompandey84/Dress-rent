@@ -8,6 +8,7 @@ import 'package:dress_app/models/user_profile.dart';
 /// Otherwise, uses a mock user so the app can be browsed without backend.
 class AuthService {
   bool get _isRealAuth => SupabaseService.isConfigured;
+  bool get isRealAuth => _isRealAuth;
 
   /// Stream of auth state changes.
   Stream<AuthState> get authStateChanges {
