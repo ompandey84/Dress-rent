@@ -18,6 +18,7 @@ import 'package:dress_app/models/cart_item.dart';
 import 'package:dress_app/screens/size_guide_bottom_sheet.dart';
 import 'package:dress_app/widgets/product_card.dart';
 import 'package:dress_app/widgets/error_dialog.dart';
+import 'package:dress_app/utils/auth_guard.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
   final Product product;
@@ -942,7 +943,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   ],
                 ),
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
+                    // Require login before booking
+                    if (!await AuthGuard.requireLogin(
+                      context,
+                      message: 'Please sign in to rent this outfit. Create an account to track your orders and manage bookings.',
+                    )) return;
+                    if (!mounted) return;
                     Navigator.push(
                       context,
                       MaterialPageRoute(
