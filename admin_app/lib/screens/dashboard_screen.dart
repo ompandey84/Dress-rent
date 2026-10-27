@@ -139,13 +139,13 @@ class _DashboardHome extends StatelessWidget {
           // KPI cards
           Row(
             children: [
-              Expanded(child: _kpi('Active rentals', '147', '+12 today', AppTheme.success, Icons.shopping_bag)),
+              Expanded(child: _kpi('Active rentals', '184', '+26 today', AppTheme.success, Icons.shopping_bag)),
               const SizedBox(width: 16),
-              Expanded(child: _kpi('GMV (week)', '₹4.2L', '+18%', AppTheme.success, Icons.trending_up)),
+              Expanded(child: _kpi('GMV (week)', '₹8.45L', '+24%', AppTheme.success, Icons.trending_up)),
               const SizedBox(width: 16),
-              Expanded(child: _kpi('Pending listings', '23', '5 need review', AppTheme.warning, Icons.pending_actions)),
+              Expanded(child: _kpi('Pending listings', '12', '4 need review', AppTheme.warning, Icons.pending_actions)),
               const SizedBox(width: 16),
-              Expanded(child: _kpi('Open tickets', '8', '2 urgent', AppTheme.danger, Icons.support_agent)),
+              Expanded(child: _kpi('Open tickets', '5', 'All within SLA', AppTheme.info, Icons.support_agent)),
             ],
           ),
           const SizedBox(height: 32),
@@ -171,7 +171,7 @@ class _DashboardHome extends StatelessWidget {
                           showTitles: true,
                           reservedSize: 24,
                           getTitlesWidget: (v, _) {
-                            const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+                            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
                             if (v.toInt() < 0 || v.toInt() >= days.length) return const SizedBox.shrink();
                             return Padding(
                               padding: const EdgeInsets.only(top: 6),
@@ -191,7 +191,7 @@ class _DashboardHome extends StatelessWidget {
                     borderData: FlBorderData(show: false),
                     lineBarsData: [
                       LineChartBarData(
-                        spots: const [FlSpot(0, 18), FlSpot(1, 22), FlSpot(2, 19), FlSpot(3, 28), FlSpot(4, 32), FlSpot(5, 25), FlSpot(6, 30)],
+                        spots: const [FlSpot(0, 24), FlSpot(1, 31), FlSpot(2, 28), FlSpot(3, 42), FlSpot(4, 56), FlSpot(5, 68), FlSpot(6, 62)],
                         isCurved: true,
                         color: AppTheme.textDark,
                         barWidth: 3,
@@ -270,10 +270,11 @@ class _DashboardHome extends StatelessWidget {
   }
 
   static const _mockActivity = [
-    {'text': 'New listing submitted by Ananya S.', 'time': '2m', 'color': AppTheme.info},
-    {'text': 'Damage claim opened on Order #DR-2901', 'time': '8m', 'color': AppTheme.danger},
-    {'text': 'Payout of ₹8,500 released to 6 lenders', 'time': '24m', 'color': AppTheme.success},
-    {'text': 'Support ticket resolved (refund issued)', 'time': '1h', 'color': AppTheme.success},
-    {'text': 'User Priya K. blocked after 3 reports', 'time': '2h', 'color': AppTheme.danger},
+    {'text': 'Booking confirmed: Sabyasachi Crimson Lehenga (₹14,400) by Aisha S.', 'time': '3m ago', 'color': AppTheme.success},
+    {'text': 'QC Inspection passed & ₹2,500 deposit unreserved for #ORD-9805', 'time': '12m ago', 'color': AppTheme.info},
+    {'text': 'New couture listing submitted: Manish Malhotra Emerald Ballgown', 'time': '28m ago', 'color': AppTheme.warning},
+    {'text': 'Weekly lender payout of ₹48,200 transferred to 8 partner boutiques', 'time': '45m ago', 'color': AppTheme.success},
+    {'text': 'Courier dispatched: BlueDart priority pickup for #ORD-9835', 'time': '1h ago', 'color': AppTheme.info},
+    {'text': 'KYC verified & approved: Virasat Weaves, Jaipur (Vendor Partner)', 'time': '2h ago', 'color': AppTheme.success},
   ];
 }
