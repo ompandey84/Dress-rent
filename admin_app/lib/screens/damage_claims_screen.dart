@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import '../theme.dart';
 
 /// Review damage claims — approve, partially approve, or reject.
@@ -11,32 +10,45 @@ class DamageClaimsScreen extends StatelessWidget {
   final _claims = const [
     {
       'id': 'C-501',
-      'order': 'DR-2901',
-      'item': 'Red Bridal Lehenga',
-      'renter': 'Sneha R.',
-      'lender': 'Priya K.',
+      'order': 'ORD-9821',
+      'item': 'Raw Mango Rani Pink Chanderi Anarkali',
+      'renter': 'Sneha Reddy (Hyderabad)',
+      'lender': 'Virasat Weaves (Jaipur)',
       'type': 'Stain',
-      'amount_claimed': 3500.0,
-      'deposit': 5000.0,
+      'amount_claimed': 1200.0,
+      'deposit': 2000.0,
       'evidence': [
         'https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=400',
-        'https://images.unsplash.com/photo-1606117331085-5760e3b58520?q=80&w=400',
+        'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=400',
       ],
       'status': 'open',
-      'notes': 'Wine stain on dupatta, near hem',
+      'notes': 'Light haldi mark along the inner border of organza dupatta. Requires organic dry-cleaning treatment.',
     },
     {
       'id': 'C-499',
-      'order': 'DR-2872',
-      'item': 'Black Gown',
-      'renter': 'Tara M.',
-      'lender': 'Anjali P.',
-      'type': 'Tear',
-      'amount_claimed': 1800.0,
-      'deposit': 3000.0,
-      'evidence': ['https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=400'],
+      'order': 'ORD-9788',
+      'item': 'Midnight Obsidian Crystal Mermaid Gown',
+      'renter': 'Tara Mehta (Mumbai)',
+      'lender': 'The Wardrobe Co. (Bengaluru)',
+      'type': 'Zip Seam',
+      'amount_claimed': 650.0,
+      'deposit': 2000.0,
+      'evidence': ['https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=400'],
       'status': 'in_review',
-      'notes': 'Small tear on sleeve',
+      'notes': 'Concealed zipper slider stuck near waist seam; needs slider replacement by master tailor.',
+    },
+    {
+      'id': 'C-495',
+      'order': 'ORD-9750',
+      'item': 'Tarun Tahiliani Concept Saree',
+      'renter': 'Ananya Iyer (Chennai)',
+      'lender': 'Aza Fashions Partner (Bengaluru)',
+      'type': 'Bead Loss',
+      'amount_claimed': 800.0,
+      'deposit': 2500.0,
+      'evidence': ['https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=400'],
+      'status': 'resolved',
+      'notes': 'Minor Swarovski bead loosening on pallu fringe. Fixed in-house; ₹800 reimbursed to lender.',
     },
   ];
 
