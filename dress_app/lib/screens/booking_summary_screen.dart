@@ -10,6 +10,7 @@ import 'package:dress_app/services/booking_service.dart';
 import 'package:dress_app/services/wallet_service.dart';
 import 'package:dress_app/screens/payment_screen.dart';
 import 'package:dress_app/screens/wallet/wallet_screen.dart';
+import 'package:dress_app/utils/auth_guard.dart';
 
 class BookingSummaryScreen extends StatefulWidget {
   final Product product;
@@ -340,7 +341,13 @@ class _BookingSummaryScreenState extends State<BookingSummaryScreen> {
                   SizedBox(
                     height: 52,
                     child: ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
+                        if (!await AuthGuard.requireLogin(
+                          context,
+                          message: 'Please sign in to proceed to payment and confirm your booking.',
+                        )) return;
+                        if (!context.mounted) return;
+
                         Navigator.push(
                           context,
                           MaterialPageRoute(
