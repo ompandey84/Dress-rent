@@ -5,6 +5,7 @@ import 'package:dress_app/theme.dart';
 import 'package:dress_app/models/product.dart';
 import 'package:dress_app/screens/booking_summary_screen.dart';
 import 'package:dress_app/models/cart_item.dart';
+import 'package:dress_app/utils/auth_guard.dart';
 import 'package:intl/intl.dart';
 
 /// Smart range picker:
@@ -237,7 +238,7 @@ class _SelectDatesScreenState extends State<SelectDatesScreen> {
                 ],
               ),
               child: ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (_startDate == null || _endDate == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
@@ -248,6 +249,12 @@ class _SelectDatesScreenState extends State<SelectDatesScreen> {
                     );
                     return;
                   }
+                  if (!await AuthGuard.requireLogin(
+                    context,
+                    message: 'Please sign in to proceed with your booking and reserve this outfit.',
+                  )) return;
+                  if (!context.mounted) return;
+
                   final cartItem = CartItem(
                     id: DateTime.now().millisecondsSinceEpoch.toString(),
                     product: widget.product,
