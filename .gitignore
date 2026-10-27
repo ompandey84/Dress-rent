@@ -1,0 +1,19 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+
+# Build artifacts & logs
+build_dress_verbose.log
+APKs/
+
+# Android build outputs & local secrets/cache
+**/android/.gradle/
+**/android/local.properties
+**/android/build/
+**/android/app/build/
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
