@@ -1,0 +1,5 @@
+package com.dressrent.dress_admin
+
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity : FlutterActivity()
