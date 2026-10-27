@@ -170,6 +170,12 @@ class ErrorDialog {
             'You don\'t have permission to do that. Please sign in and try again.',
       );
     }
+    if (raw.contains('Email not confirmed')) {
+      return (
+        title: 'Email not verified',
+        message: 'Please check your email and click the confirmation link before signing in.',
+      );
+    }
     if (raw.contains('Invalid login') || raw.contains('Invalid credentials')) {
       return (
         title: 'Sign-in failed',
