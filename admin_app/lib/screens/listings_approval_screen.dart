@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../theme.dart';
 
@@ -17,9 +16,23 @@ class _ListingsApprovalScreenState extends State<ListingsApprovalScreen> {
   final _mockListings = [
     {
       'id': 'L-1001',
-      'title': 'Black Sequin Evening Gown',
-      'lender': 'Ananya Sharma',
-      'price': 1500,
+      'title': 'Sabyasachi Heritage Crimson Zardozi Lehenga',
+      'lender': 'The Luxe Vault (Bandra, Mumbai)',
+      'price': 4800,
+      'category': 'Bridal',
+      'photos': [
+        'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=400',
+        'https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=400',
+      ],
+      'status': 'pending',
+      'submitted': '45m ago',
+      'reason': null,
+    },
+    {
+      'id': 'L-1002',
+      'title': 'Manish Malhotra Emerald Velvet Evening Ballgown',
+      'lender': 'Khaab Haute Couture (South Delhi)',
+      'price': 2400,
       'category': 'Party',
       'photos': [
         'https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=400',
@@ -30,26 +43,52 @@ class _ListingsApprovalScreenState extends State<ListingsApprovalScreen> {
       'reason': null,
     },
     {
-      'id': 'L-1002',
-      'title': 'Red Bridal Lehenga with Gold Work',
-      'lender': 'Priya Kapoor',
-      'price': 4500,
-      'category': 'Bridal',
+      'id': 'L-1003',
+      'title': 'Tarun Tahiliani Blush Draped Concept Saree',
+      'lender': 'Aza Fashions Partner (Bengaluru)',
+      'price': 1850,
+      'category': 'Ethnic',
       'photos': [
-        'https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=400',
+        'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=400',
       ],
       'status': 'pending',
-      'submitted': '5h ago',
+      'submitted': '4h ago',
+      'reason': null,
+    },
+    {
+      'id': 'L-1004',
+      'title': 'Papa Don\'t Preach Lilac Embellished Jumpsuit',
+      'lender': 'Chic Runway (New Delhi)',
+      'price': 1400,
+      'category': 'Party',
+      'photos': [
+        'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=400',
+      ],
+      'status': 'pending',
+      'submitted': '6h ago',
       'reason': null,
     },
     {
       'id': 'L-0998',
-      'title': 'Casual Denim Jacket',
-      'lender': 'Riya M.',
-      'price': 600,
-      'category': 'Casual',
+      'title': 'Raw Mango Rani Pink Chanderi Silk Anarkali',
+      'lender': 'Virasat Weaves (Jaipur)',
+      'price': 1150,
+      'category': 'Ethnic',
       'photos': [
-        'https://images.unsplash.com/photo-1551537482-f2075a1d41f2?q=80&w=400',
+        'https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=400',
+      ],
+      'status': 'approved',
+      'submitted': '1d ago',
+      'reason': null,
+    },
+    {
+      'id': 'L-0997',
+      'title': 'Midnight Obsidian Crystal Mermaid Gown',
+      'lender': 'The Wardrobe Co. (Bengaluru)',
+      'price': 1250,
+      'category': 'Formal',
+      'photos': [
+        'https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=400',
       ],
       'status': 'approved',
       'submitted': '1d ago',
@@ -57,16 +96,16 @@ class _ListingsApprovalScreenState extends State<ListingsApprovalScreen> {
     },
     {
       'id': 'L-0995',
-      'title': 'Wedding Saree (stained)',
-      'lender': 'Kavya P.',
-      'price': 2000,
-      'category': 'Wedding',
+      'title': 'Vintage Silk Kurta Set',
+      'lender': 'Pooja Verma (Indore)',
+      'price': 900,
+      'category': 'Ethnic',
       'photos': [
         'https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=400',
       ],
       'status': 'rejected',
       'submitted': '2d ago',
-      'reason': 'Visible stain on dupatta, photo quality low',
+      'reason': 'Low photo resolution. Please upload high-resolution daylight photos showing hem and embroidery details.',
     },
   ];
 
