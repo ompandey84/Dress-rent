@@ -2,6 +2,13 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        maven {
+            url = uri("https://maven.cashfree.com/release")
+            content {
+                includeGroup("com.cashfree.pg")
+                includeGroupByRegex("com\\.cashfree.*")
+            }
+        }
     }
 }
 
@@ -21,6 +28,7 @@ subprojects {
         resolutionStrategy {
             force("androidx.core:core:1.12.0")
             force("androidx.core:core-ktx:1.12.0")
+            force("com.android.volley:volley:1.2.1")
         }
     }
 }
@@ -30,6 +38,9 @@ subprojects {
         val androidExt = subproject.extensions.findByName("android")
         if (androidExt is com.android.build.gradle.BaseExtension) {
             androidExt.compileSdkVersion(34)
+            if (androidExt.namespace == null) {
+                androidExt.namespace = subproject.group.toString().takeIf { it.isNotEmpty() } ?: "com.example.${subproject.name}"
+            }
             println("Set compileSdkVersion 34 for subproject: ${subproject.name}")
         }
     }
@@ -40,7 +51,9 @@ subprojects {
     }
 }
 subprojects {
-    project.evaluationDependsOn(":app")
+    if (project.name != "app") {
+        project.evaluationDependsOn(":app")
+    }
 }
 
 tasks.register<Delete>("clean") {
