@@ -55,34 +55,123 @@ class _SignupScreenState extends State<SignupScreen> {
       });
       
       try {
-        await _authService.signUp(
+        final res = await _authService.signUp(
           email: _emailController.text.trim(),
           password: _passwordController.text,
           data: {'full_name': _nameController.text.trim()},
         );
-        if (mounted) {
-          // Register the user in AppState so the rest of the app sees
-          // them as authenticated (not guest). In mock mode, the
-          // Supabase auth call is a no-op, so we always synthesize a
-          // local profile keyed by the email.
-          final appState = context.read<AppState>();
-          await appState.setAuthenticated(UserProfile(
-            id: 'local-${_emailController.text.trim()}',
-            name: _nameController.text.trim().isNotEmpty
-                ? _nameController.text.trim()
-                : _emailController.text.trim().split('@').first,
-            email: _emailController.text.trim(),
-            phone: '',
-            avatarUrl: '',
-            isVendor: false,
-            isOnboarded: true,
-          ));
-          if (!mounted) return;
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const MainNavigation()),
-            (route) => false,
+        if (!mounted) return;
+
+        // If Supabase sent a confirmation email, res.user exists but res.session is null.
+        // Prompt user to verify their email before logging in.
+        if (res.user != null && res.session == null) {
+          await showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => AlertDialog(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryLime.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      FluentIcons.mail_24_regular,
+                      color: AppTheme.textDark,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Verify your email',
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.textDark,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'We have sent a confirmation email to:',
+                    style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textLight),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    _emailController.text.trim(),
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Please click the verification link in the email to activate your account, then sign in.',
+                    style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textLight, height: 1.4),
+                  ),
+                ],
+              ),
+              actions: [
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      Navigator.pop(context); // Return to LoginScreen
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryLime,
+                      foregroundColor: AppTheme.textDark,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: Text(
+                      'BACK TO SIGN IN',
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 13,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           );
+          return;
         }
+
+        // If session is already active (or mock mode):
+        final appState = context.read<AppState>();
+        await appState.setAuthenticated(UserProfile(
+          id: res.user?.id ?? 'local-${_emailController.text.trim()}',
+          name: _nameController.text.trim().isNotEmpty
+              ? _nameController.text.trim()
+              : _emailController.text.trim().split('@').first,
+          email: _emailController.text.trim(),
+          phone: '',
+          avatarUrl: '',
+          isVendor: false,
+          isOnboarded: true,
+        ));
+        if (!mounted) return;
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const MainNavigation()),
+          (route) => false,
+        );
       } catch (e) {
         if (mounted) {
           final desc = ErrorDialog.describe(e);
