@@ -13,10 +13,18 @@ class SupabaseService {
     try {
       final url = dotenv.env['SUPABASE_URL'] ?? '';
       final key = dotenv.env['SUPABASE_ANON_KEY'] ?? '';
-      return url.isNotEmpty &&
-          key.isNotEmpty &&
-          !url.contains('YOUR_') &&
-          !key.contains('YOUR_');
+      if (url.isEmpty || key.isEmpty) return false;
+      final lowerUrl = url.toLowerCase();
+      final lowerKey = key.toLowerCase();
+      if (lowerUrl.contains('your-') ||
+          lowerUrl.contains('your_') ||
+          lowerUrl.contains('example.com') ||
+          lowerKey.contains('your-') ||
+          lowerKey.contains('your_') ||
+          lowerKey.contains('anon-key')) {
+        return false;
+      }
+      return true;
     } catch (_) {
       // dotenv not loaded yet — assume not configured
       return false;

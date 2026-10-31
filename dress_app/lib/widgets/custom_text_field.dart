@@ -51,13 +51,14 @@ class CustomTextField extends StatelessWidget {
           onChanged: onChanged,
           inputFormatters: inputFormatters,
           maxLines: isPassword ? 1 : maxLines,
-          style: GoogleFonts.inter(
+          style: const TextStyle(
             fontSize: 15,
             color: AppTheme.textDark,
+            fontWeight: FontWeight.w500,
           ),
           decoration: InputDecoration(
             hintText: hintText,
-            hintStyle: GoogleFonts.inter(
+            hintStyle: const TextStyle(
               fontSize: 14,
               color: AppTheme.textLight,
             ),
@@ -85,7 +86,7 @@ class CustomTextField extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: Colors.redAccent, width: 2),
             ),
-            errorStyle: GoogleFonts.inter(
+            errorStyle: const TextStyle(
               color: Colors.redAccent,
               fontSize: 13,
               fontWeight: FontWeight.w500,

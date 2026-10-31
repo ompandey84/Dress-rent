@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:dress_app/theme.dart';
-import 'package:dress_app/screens/phone_login_screen.dart';
+import 'package:dress_app/screens/login_screen.dart';
 import 'package:dress_app/screens/main_navigation.dart';
 import 'package:dress_app/services/app_state.dart';
 import 'package:dress_app/services/supabase_service.dart';
@@ -37,15 +37,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   ];
 
   void _navigateToNext(BuildContext context) {
-    // If Supabase not configured, skip login and go straight to main
-    if (!SupabaseService.isConfigured) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MainNavigation()),
-      );
-      return;
-    }
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const PhoneLoginScreen()),
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
     );
   }
 

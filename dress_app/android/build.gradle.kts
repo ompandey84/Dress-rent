@@ -26,8 +26,8 @@ subprojects {
     val subproject = this
     subproject.configurations.all {
         resolutionStrategy {
-            force("androidx.core:core:1.12.0")
-            force("androidx.core:core-ktx:1.12.0")
+            force("androidx.core:core:1.13.1")
+            force("androidx.core:core-ktx:1.13.1")
             force("com.android.volley:volley:1.2.1")
         }
     }
@@ -38,6 +38,7 @@ subprojects {
         val androidExt = subproject.extensions.findByName("android")
         if (androidExt is com.android.build.gradle.BaseExtension) {
             androidExt.compileSdkVersion(34)
+            androidExt.ndkVersion = "27.0.12077973"
             if (androidExt.namespace == null) {
                 androidExt.namespace = subproject.group.toString().takeIf { it.isNotEmpty() } ?: "com.example.${subproject.name}"
             }
